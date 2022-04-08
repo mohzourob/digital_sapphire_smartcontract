@@ -127,6 +127,13 @@ contract DigitalSapphireMarket is ReentrancyGuard {
 
         emit PriceUpdated(itemId, _marketItems[itemId].tokenId, price);
     }
+
+    function burnItem(uint256 itemId) public{
+        require(_owners[itemId] == msg.sender, "UnAuthorized!");
+
+        delete _marketItems[itemId];
+        delete  _ownerToHisTokens[msg.sender][itemId];
+    }
 }
 
 
