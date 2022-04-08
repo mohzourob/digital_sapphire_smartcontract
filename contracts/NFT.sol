@@ -4,10 +4,12 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 
 contract NFT is ERC721URIStorage {
     using Counters for Counters.Counter;
+    using SafeMath for uint256;
 
     // counter to keep track of tokenIds
     Counters.Counter private _tokensCounter;
@@ -24,7 +26,7 @@ contract NFT is ERC721URIStorage {
         uint256 newItemId = _tokensCounter.current();
 
         // mint item id
-        _mint(msg.sender, newItemId);
+        _safeMint(msg.sender, newItemId);
 
         // save item id with token url
         _setTokenURI(newItemId, tokenURI);
