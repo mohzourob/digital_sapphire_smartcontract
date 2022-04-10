@@ -6,34 +6,8 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./NFT.sol";
 
-
-contract Owner {
-    address private owner;
-    event NewOwnerSet(address indexed oldOwer, address indexed newOwner);
-
-    constructor(){
-        owner = msg.sender;
-        emit NewOwnerSet(address(0), owner);
-    }
-
-    modifier isOwner() {
-        require(msg.sender == owner, "Not authorized!");
-        _;
-    }
-
-    function getOwner() external view returns(address) {
-        return owner;
-    }
-
-
-    function setNewOwner(address _newOwner) public isOwner returns(bool){
-        require(owner != address(0), "Invalid Address!");
-        emit NewOwnerSet(owner, _newOwner);
-        owner = _newOwner;
-        return true;
-    }
-}
 
 contract DigitalSapphireMarket is ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -51,10 +25,11 @@ contract DigitalSapphireMarket is ReentrancyGuard {
 
     Counters.Counter private _tokenIds;
     Counters.Counter private _tokensSold;
+    uint256 private _contractFee;
     
-    mapping(uint256 => NFTItem) _marketItems;
+    mapping(uint256 => NFTItem) private _marketItems;
     mapping(address => mapping(uint256 =>  NFTItem)) private _ownerToHisTokens;
-    mapping(uint256 => address) private _owners;
+
 
     event NewItemAdded(
         uint256 indexed itemId,
@@ -69,11 +44,19 @@ contract DigitalSapphireMarket is ReentrancyGuard {
     event PriceUpdated(
         uint256 indexed itemId,
         uint256 indexed tokenId,
-        uint256 price
+        uint256 oldPrice,
+        uint256 newPrice
+    );
+
+    event ItemBurn (
+        uint256 indexed itemId,
+        uint256 indexed tokenId
     );
 
 
-    constructor(){}
+    constructor(){
+        _contractFee = 2.5
+    }
 
     // create item with out add this item to listing page with price.
     // nonReentrant is a modifier to prevent reentry attak.
@@ -101,7 +84,6 @@ contract DigitalSapphireMarket is ReentrancyGuard {
             false
         );
 
-        _owners[itemId] = msg.sender;
 
         // NFT transaction
         IERC721(nftContract).safeTransferFrom(msg.sender, address(this), tokenId);
@@ -120,21 +102,31 @@ contract DigitalSapphireMarket is ReentrancyGuard {
 
     function updateItemPrice(uint256 itemId, uint256 price) public {
         require(price > 0, "Price must be at least one wei");
-        require(_owners[itemId] == msg.sender, "UnAuthorized!");
+        require(
+            NFT(_marketItems[itemId].nftContract).ownerOf(_marketItems[itemId].tokenId) == _marketItems[itemId].owner, 
+            "UnAuthorized!"
+        );
 
+        uint256 oldPrice = _marketItems[itemId].price;
         _marketItems[itemId].price = price;
         _ownerToHisTokens[msg.sender][itemId].price = price;
 
-        emit PriceUpdated(itemId, _marketItems[itemId].tokenId, price);
+        emit PriceUpdated(itemId, _marketItems[itemId].tokenId, oldPrice, price);
     }
 
     function burnItem(uint256 itemId) public{
-        require(_owners[itemId] == msg.sender, "UnAuthorized!");
+        require(
+            NFT(_marketItems[itemId].nftContract).ownerOf(_marketItems[itemId].tokenId) == _marketItems[itemId].owner, 
+            "UnAuthorized!"
+        );
 
+        uint256 tokenId = _marketItems[itemId].tokenId;
         delete _marketItems[itemId];
         delete  _ownerToHisTokens[msg.sender][itemId];
+
+        // burn token using call burnToken function by call NFT contract.
+        NFT(_marketItems[itemId].nftContract).burnToken(tokenId);
+        
+        emit ItemBurn(itemId, tokenId);
     }
 }
-
-
-
