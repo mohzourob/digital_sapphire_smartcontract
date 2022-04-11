@@ -5,28 +5,40 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 
-contract NFT is ERC721URIStorage {
+
+contract NFT is ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
 
     // counter to keep track of tokenIds
     Counters.Counter private _tokensCounter;
 
+
     // address of marketplace for NFTs to interact
     address public contractAddress;
 
-    constructor(address marketplaceAddress) ERC721("DigitalSapphire", "DSH"){
-        contractAddress = marketplaceAddress;
+    constructor() ERC721("DigitalSapphire", "DGS"){}
+
+
+    modifier checkIfCorrectContractAddress (){
+        require(msg.sender == contractAddress);
+        _;
     }
 
-    function mintToken(string memory tokenURI) public returns (uint256){
+
+    function setContractAddress(address contractAdd) public onlyOwner{
+        contractAddress = contractAdd;
+    }
+
+    function mintToken(address owner, string memory tokenURI) public checkIfCorrectContractAddress returns (uint256){
         _tokensCounter.increment();
         uint256 newItemId = _tokensCounter.current();
 
         // mint item id
-        _safeMint(msg.sender, newItemId);
+        _safeMint(owner, newItemId);
 
         // save item id with token url
         _setTokenURI(newItemId, tokenURI);
@@ -37,7 +49,7 @@ contract NFT is ERC721URIStorage {
         return newItemId;
     }
 
-    function burnToken(uint256 tokenId) public{
+    function burnToken(uint256 tokenId) public checkIfCorrectContractAddress {
         _burn(tokenId);
     }
 }
