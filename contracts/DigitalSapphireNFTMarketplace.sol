@@ -8,10 +8,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./NFT.sol";
 import "hardhat/console.sol";
 
-contract NFT is ERC721URIStorage, Ownable {
+contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;
     using SafeMath for uint256;
 
@@ -34,6 +33,7 @@ contract NFT is ERC721URIStorage, Ownable {
 
     Counters.Counter private _tokenIds;
     Counters.Counter private _tokensSold;
+    Counters.Counter private _tokensDeleted;
     uint256 private _contractFee;
     uint256 private _contractProfits;
 
@@ -131,26 +131,28 @@ contract NFT is ERC721URIStorage, Ownable {
     function deleteItem(uint256 itemId) public {
         require(msg.sender == _marketItems[itemId].owner, "UnAuthorized!");
         require(_marketItems[itemId].sold != true, "This item already sold!");
-        // uint256 tokenId = _marketItems[itemId].tokenId;
-        // _marketItems[itemId]._isDeleted = true;
+        require(_marketItems[itemId]._isDeleted != true, "This item already deleted!");
+        uint256 tokenId = _marketItems[itemId].tokenId;
+        _tokensDeleted.increment();
 
         // delete item from array
 
-        // for (uint256 i = 0 ; i < _ownerToArrayOfTokens[msg.sender].length; i++) {
-        // if (itemId == _ownerToArrayOfTokens[msg.sender][i]) {
-        // for(uint256 j = i; j < _ownerToArrayOfTokens[msg.sender].length-1; j++){
-        //     _ownerToArrayOfTokens[msg.sender][j] = _ownerToArrayOfTokens[msg.sender][j+1];
-        // }
-        // _ownerToArrayOfTokens[msg.sender].pop();
-        // _marketItems[itemId].isDeleted = true;
+        for (uint256 i = 0 ; i < _ownerToArrayOfTokens[msg.sender].length; i++) {
+            if (itemId == _ownerToArrayOfTokens[msg.sender][i]) {
+                for(uint256 j = i; j < _ownerToArrayOfTokens[msg.sender].length-1; j++){
+                    _ownerToArrayOfTokens[msg.sender][j] = _ownerToArrayOfTokens[msg.sender][j+1];
+                }
+                _ownerToArrayOfTokens[msg.sender].pop();
+                _marketItems[itemId]._isDeleted = true;
 
-        // burn token using call burnToken function by call NFT contract.
-        // _burn(tokenId);
+                // burn token using call burnToken function by call NFT contract.
+                _burn(tokenId);
 
-        // emit ItemBurn(itemId, tokenId);
-        // }
-        // }
+                emit ItemBurn(itemId, tokenId);
+            }
+        }
     }
+    
 
     function createItem(string memory tokenURI) public {
         // uint256 tokenId = NFT(nftContract).mintToken(msg.sender, tokenURI);
@@ -222,6 +224,7 @@ contract NFT is ERC721URIStorage, Ownable {
 
     function updateItemPrice(uint256 itemId, uint256 price) public {
         require(price > 0, "Price must be at least one wei");
+        require(_marketItems[itemId]._isDeleted != true, "This item already deleted!");
 
         require(msg.sender == _marketItems[itemId].owner, "UnAuthorized!");
 
@@ -247,6 +250,7 @@ contract NFT is ERC721URIStorage, Ownable {
             msg.sender != _marketItems[itemId].owner,
             "You are the owner of this token!"
         );
+        require(_marketItems[itemId]._isDeleted != true, "This item already deleted!");
 
         // take fee from value
         uint256 feeValue = getFeeValueForAmountofWei(msg.value);
@@ -282,11 +286,11 @@ contract NFT is ERC721URIStorage, Ownable {
     function fetchMarketNFTs() public view returns (NFTItem[] memory) {
         uint256 numberOfItems = _tokenIds.current();
 
+        console.log(numberOfItems);
+
         NFTItem[] memory items = new NFTItem[](numberOfItems);
         for (uint256 i = 0; i < numberOfItems; i++) {
-            if (_marketItems[i + 1]._isDeleted == false) {
-                items[i] = _marketItems[i + 1];
-            }
+            items[i] = _marketItems[i + 1];
         }
 
         return items;

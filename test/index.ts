@@ -3,17 +3,29 @@ import { ethers } from "hardhat";
 
 describe("Greeter", function () {
   it("Should return the new greeting once it's changed", async function () {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
-    await greeter.deployed();
+    const DigitalSapphire = await ethers.getContractFactory("DigitalSapphireNFTMarketplace");
+    const digitalSapphire = await DigitalSapphire.deploy();
+    await digitalSapphire.deployed();
 
-    expect(await greeter.greet()).to.equal("Hello, world!");
 
-    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
+    await digitalSapphire["createItem(string)"]("strin");
+    let items = await digitalSapphire.fetchMarketNFTs();
+    console.log(items);
 
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
+    await digitalSapphire.deleteItem(1);
 
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
+     items = await digitalSapphire.fetchMarketNFTs();
+    console.log(items);
+
+
+
+    // expect(await greeter.greet()).to.equal("Hello, world!");
+
+    // const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
+
+    // // wait until the transaction is mined
+    // await setGreetingTx.wait();
+
+    // expect(await greeter.greet()).to.equal("Hola, mundo!");
   });
 });
