@@ -70,6 +70,22 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         _contractFee = 250;
     }
 
+    // fall back to recieve ether directly to this contract when has body msg
+    fallback() external payable {}
+
+    // recieve ether directly when does not body msg
+    receive() external payable {}
+
+    // send contract stored in contract to the owner
+    function sendContractBalanceToOwner() external payable onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
+    // get contract balance
+    function getContractBalance() public view onlyOwner returns (uint256){
+        return address(this).balance;
+    }
+
     // get contract profits
     function getContractProfits() public view onlyOwner returns (uint256) {
         return _contractProfits;
