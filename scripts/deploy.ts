@@ -14,11 +14,12 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const DigitalSapphire = await ethers.getContractFactory(`DigitalSapphireNFTMarketplace`);
+  const DigitalSapphire = await ethers.getContractFactory(
+    `DigitalSapphireNFTMarketplace`
+  );
   const digitalSapphire = await DigitalSapphire.deploy();
 
   await digitalSapphire.deployed();
-
 
   console.log("Greeter deployed to:", digitalSapphire.address);
 }

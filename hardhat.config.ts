@@ -6,6 +6,7 @@ import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
+import "hardhat-deploy";
 
 dotenv.config();
 
@@ -23,8 +24,21 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 // Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatUserConfig = {
+  defaultNetwork: "hardhat",
   solidity: "0.8.4",
   networks: {
+    hardhat: {
+      // If you want to do some forking set `enabled` to true
+      forking: {
+        url: "MAINNET_RPC_URL",
+        blockNumber: 0,
+        enabled: false,
+      },
+      chainId: 31337,
+    },
+    localhost: {
+      chainId: 31337,
+    },
     ropsten: {
       url: process.env.ROPSTEN_URL || "",
       accounts:
