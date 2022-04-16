@@ -34,6 +34,26 @@ if (developmentChains.includes(network.name)) {
       assert.equal(+eventDetails.price.toString(), 0);
       assert.equal(eventDetails.sold, false);
     });
+
+    it("Should create item with price successfully and send event with data", async () => {
+      const tokenURI = "test";
+      const price = 10;
+      const createItemTransaction = await dsContract[
+        "createItem(string,uint256)"
+      ](tokenURI, price);
+
+      const transactionReceipt = await createItemTransaction.wait(1);
+      const eventDetails =
+        transactionReceipt.events[transactionReceipt.events.length - 1].args;
+
+      assert.equal(eventDetails.tokenURI, tokenURI);
+      assert.isAbove(+eventDetails.itemId.toString(), 0);
+      assert.isAbove(+eventDetails.tokenId.toString(), 0);
+      assert.equal(+eventDetails.seller.toString(), 0);
+      assert.equal(createItemTransaction.from, eventDetails.owner);
+      assert.equal(+eventDetails.price.toString(), price);
+      assert.equal(eventDetails.sold, false);
+    });
   });
 } else {
   // eslint-disable-next-line no-unused-expressions
