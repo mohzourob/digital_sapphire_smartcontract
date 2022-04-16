@@ -23,6 +23,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
 
     // market item
     struct NFTItem {
+        string tokenURI;
         uint256 itemId;
         uint256 tokenId;
         address payable seller;
@@ -187,6 +188,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         uint256 itemId = _tokenIds.current();
 
         _marketItems[itemId] = NFTItem(
+            tokenURI,
             itemId,
             tokenId,
             payable(address(0)),
@@ -223,6 +225,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         uint256 itemId = _tokenIds.current();
 
         _marketItems[itemId] = NFTItem(
+            tokenURI,
             itemId,
             tokenId,
             payable(address(0)),
