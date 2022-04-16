@@ -43,6 +43,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
     mapping(address => uint256[]) private _ownerToArrayOfBoughtTokens;
 
     event NewItemAdded(
+        string tokenURI,
         uint256 indexed itemId,
         uint256 indexed tokenId,
         address seller,
@@ -180,8 +181,6 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
     }
 
     function createItem(string memory tokenURI) public {
-        // uint256 tokenId = NFT(nftContract).mintToken(msg.sender, tokenURI);
-
         uint256 tokenId = mintToken(tokenURI);
 
         _tokenIds.increment();
@@ -203,6 +202,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         IERC721(address(this)).transferFrom(msg.sender, address(this), tokenId);
 
         emit NewItemAdded(
+            tokenURI,
             itemId,
             tokenId,
             payable(address(0)),
@@ -238,6 +238,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         IERC721(address(this)).transferFrom(msg.sender, address(this), tokenId);
 
         emit NewItemAdded(
+            tokenURI,
             itemId,
             tokenId,
             payable(address(0)),

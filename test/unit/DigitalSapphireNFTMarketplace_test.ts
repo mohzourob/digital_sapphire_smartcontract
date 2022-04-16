@@ -17,9 +17,22 @@ if (developmentChains.includes(network.name)) {
       await dsContract.deployed();
     });
 
-    it("Should", async () => {
-      const x = await dsContract["createItem(string)"]("test");
-      console.log(x);
+    it("Should create item without price successfully and send event with data", async () => {
+      const tokenURI = "test";
+      const createItemTransaction = await dsContract["createItem(string)"](
+        tokenURI
+      );
+      const transactionReceipt = await createItemTransaction.wait(1);
+      const eventDetails =
+        transactionReceipt.events[transactionReceipt.events.length - 1].args;
+
+      assert.equal(eventDetails.tokenURI, tokenURI);
+      assert.isAbove(+eventDetails.itemId.toString(), 0);
+      assert.isAbove(+eventDetails.tokenId.toString(), 0);
+      assert.equal(+eventDetails.seller.toString(), 0);
+      assert.equal(createItemTransaction.from, eventDetails.owner);
+      assert.equal(+eventDetails.price.toString(), 0);
+      assert.equal(eventDetails.sold, false);
     });
   });
 } else {
