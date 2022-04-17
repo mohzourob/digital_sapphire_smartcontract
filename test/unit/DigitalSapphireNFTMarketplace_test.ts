@@ -8,11 +8,14 @@ if (developmentChains.includes(network.name)) {
     let dsContract: any;
     const oldPrice = 10;
     const newPrice = 30;
+    let owner: any, addr1: any, addr2: any;
 
     before(async () => {
       const DSContract = await ethers.getContractFactory(
         "DigitalSapphireNFTMarketplace"
       );
+
+      [owner, addr1, addr2] = await ethers.getSigners();
       dsContract = await DSContract.deploy();
       await dsContract.deployed();
     });
@@ -85,18 +88,33 @@ if (developmentChains.includes(network.name)) {
 
     });
 
-    // it("Should create item with price successfully and send event with data", async () => {
-    //   const createItemTransaction = await dsContract[
-    //     "createItem(string,uint256)"
-    //   ]("tokenURI", oldPrice);
+    it("Should update item price successfully", async () => {
+      const updateItemPriceTransaction = await dsContract.updateItemPrice(2, newPrice);
+      await updateItemPriceTransaction.wait(1);
 
-    //   const transactionReceipt = await createItemTransaction.wait(1);
-    //   const eventDetails =
-    //     transactionReceipt.events[transactionReceipt.events.length - 1].args;
+      const items = await dsContract.fetchMarketNFTs();
+      
+      assert.equal(+items[1].price.toString(), newPrice);
+    });
 
-    //   const itemId = +eventDetails.itemId.toString();
-    // });
-  });
+    it("Should falied update item price because price not above 0", async ()=>{
+      await expect(dsContract.updateItemPrice(2, 0)).to.be.revertedWith('Price must be at least one wei');
+    });
+
+
+    it("Should falied update item price because item already deleted", async()=>{
+      const deleteItemTransaction = await dsContract.deleteItem(2);
+      await deleteItemTransaction.wait(1);
+
+      await expect(dsContract.updateItemPrice(2, 20)).to.be.revertedWith('This item already deleted!');
+
+    });
+
+
+    it("Should falied update item price because sender not the owner", async ()=>{
+      await expect(dsContract.connect(addr1).updateItemPrice(1, 20)).to.be.revertedWith('UnAuthorized!');
+    })
+  })
 } else {
   // eslint-disable-next-line no-unused-expressions
   describe.skip;
