@@ -85,36 +85,41 @@ if (developmentChains.includes(network.name)) {
       assert.equal(createItemTransaction.from, items[1].owner);
       assert.equal(+items[1].price.toString(), oldPrice);
       assert.equal(items[1].sold, false);
-
     });
 
     it("Should update item price successfully", async () => {
-      const updateItemPriceTransaction = await dsContract.updateItemPrice(2, newPrice);
+      const updateItemPriceTransaction = await dsContract.updateItemPrice(
+        2,
+        newPrice
+      );
       await updateItemPriceTransaction.wait(1);
 
       const items = await dsContract.fetchMarketNFTs();
-      
+
       assert.equal(+items[1].price.toString(), newPrice);
     });
 
-    it("Should falied update item price because price not above 0", async ()=>{
-      await expect(dsContract.updateItemPrice(2, 0)).to.be.revertedWith('Price must be at least one wei');
+    it("Should falied update item price because price not above 0", async () => {
+      await expect(dsContract.updateItemPrice(2, 0)).to.be.revertedWith(
+        "Price must be at least one wei"
+      );
     });
 
-
-    it("Should falied update item price because item already deleted", async()=>{
+    it("Should falied update item price because item already deleted", async () => {
       const deleteItemTransaction = await dsContract.deleteItem(2);
       await deleteItemTransaction.wait(1);
 
-      await expect(dsContract.updateItemPrice(2, 20)).to.be.revertedWith('This item already deleted!');
-
+      await expect(dsContract.updateItemPrice(2, 20)).to.be.revertedWith(
+        "This item already deleted!"
+      );
     });
 
-
-    it("Should falied update item price because sender not the owner", async ()=>{
-      await expect(dsContract.connect(addr1).updateItemPrice(1, 20)).to.be.revertedWith('UnAuthorized!');
-    })
-  })
+    it("Should falied update item price because sender not the owner", async () => {
+      await expect(
+        dsContract.connect(addr1).updateItemPrice(1, 20)
+      ).to.be.revertedWith("UnAuthorized!");
+    });
+  });
 } else {
   // eslint-disable-next-line no-unused-expressions
   describe.skip;
