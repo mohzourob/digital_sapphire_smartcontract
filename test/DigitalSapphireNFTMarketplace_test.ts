@@ -104,13 +104,13 @@ if (developmentChains.includes(network.name)) {
       assert.equal(+items[1].price.toString(), newPrice);
     });
 
-    it("Should falied update item price because price not above 0", async () => {
+    it("Should failed update item price because price not above 0", async () => {
       await expect(
         dsContract.connect(addr1).updateItemPrice(2, 0)
       ).to.be.revertedWith("Price must be at least one wei");
     });
 
-    it("Should falied update item price because item already deleted", async () => {
+    it("Should failed update item price because item already deleted", async () => {
       const deleteItemTransaction = await dsContract
         .connect(addr1)
         .deleteItem(2);
@@ -121,13 +121,13 @@ if (developmentChains.includes(network.name)) {
       ).to.be.revertedWith("This item already deleted!");
     });
 
-    it("Should falied update item price because sender not the owner", async () => {
+    it("Should failed update item price because sender not the owner", async () => {
       await expect(
         dsContract.connect(addr2).updateItemPrice(1, 20)
       ).to.be.revertedWith("UnAuthorized!");
     });
 
-    it("Should buy process falied because item has no price", async () => {
+    it("Should buy process failed because item has no price", async () => {
       const itemId = await createItem(dsContract, "AnyString", addr1, 0);
 
       await expect(
@@ -136,6 +136,58 @@ if (developmentChains.includes(network.name)) {
         })
       ).to.be.revertedWith("Not able to buy!");
     });
+
+    it("Should buy process failed because value less than item price", async ()=>{
+      const itemId = await createItem(dsContract, "AnyString", addr1, 10);
+
+      await expect(
+        dsContract.connect(addr2).buyItem(itemId, {
+          value: ethers.utils.parseEther("1.0"),
+        })
+      ).to.be.revertedWith("Please submit asking price in order to countinue");      
+    });
+
+    it("Should buy process failed because item already sold", async ()=>{
+      const itemId = await createItem(dsContract, "AnyString", addr1, 10);
+
+      const buyTransaction = await dsContract.connect(addr2).buyItem(itemId, {
+        value: ethers.utils.parseEther("10.0"),
+      })
+
+      await buyTransaction.wait(1);
+
+      await expect(
+        dsContract.connect(addr2).buyItem(itemId, {
+          value: ethers.utils.parseEther("10.0"),
+        })
+      ).to.be.revertedWith("Item already sold"); 
+    });
+
+    it("Should buy failed because you are the owner of this item", async ()=>{
+      const itemId = await createItem(dsContract, "AnyString", addr1, 10);
+
+      await expect(
+        dsContract.connect(addr1).buyItem(itemId, {
+          value: ethers.utils.parseEther("10.0"),
+        })
+      ).to.be.revertedWith("You are the owner of this token!");
+    })
+
+
+    it("Should buy failed because item already deleted", async ()=>{
+      const itemId = await createItem(dsContract, "AnyString", addr1, 10);
+
+      const deleteItemTransaction = await dsContract
+      .connect(addr1)
+      .deleteItem(itemId);
+    await deleteItemTransaction.wait(1);
+
+    await expect(
+      dsContract.connect(addr2).buyItem(itemId, {
+        value: ethers.utils.parseEther("10.0"),
+      })
+    ).to.be.revertedWith("This item already deleted!");
+    })
   });
 } else {
   // eslint-disable-next-line no-unused-expressions
