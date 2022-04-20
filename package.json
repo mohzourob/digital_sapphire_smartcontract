@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test test/unit/*.ts --network localhost",
+    "test": "hardhat test test/*.ts --network localhost",
     "format": "prettier --write ."
   },
   "devDependencies": {

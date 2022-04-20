@@ -1,7 +1,7 @@
 import { assert, expect } from "chai";
 import { network, ethers, deployments } from "hardhat";
 // eslint-disable-next-line node/no-missing-import
-import { developmentChains } from "../../helper-hardhat-config";
+import { developmentChains } from "../helper-hardhat-config";
 
 if (developmentChains.includes(network.name)) {
   describe("Unit Test for Digital Sapphire NFTs marketplace", async function () {
@@ -16,15 +16,15 @@ if (developmentChains.includes(network.name)) {
       );
 
       [owner, addr1, addr2] = await ethers.getSigners();
-      dsContract = await DSContract.deploy();
+      dsContract = await DSContract.connect(owner).deploy();
       await dsContract.deployed();
     });
 
     it("Should create item without price successfully and send event with data", async () => {
       const tokenURI = "test";
-      const createItemTransaction = await dsContract["createItem(string)"](
-        tokenURI
-      );
+      const createItemTransaction = await dsContract
+        .connect(addr1)
+        ["createItem(string)"](tokenURI);
       const transactionReceipt = await createItemTransaction.wait(1);
       const eventDetails =
         transactionReceipt.events[transactionReceipt.events.length - 1].args;
@@ -55,9 +55,9 @@ if (developmentChains.includes(network.name)) {
 
     it("Should create item with price successfully and send event with data", async () => {
       const tokenURI = "test";
-      const createItemTransaction = await dsContract[
-        "createItem(string,uint256)"
-      ](tokenURI, oldPrice);
+      const createItemTransaction = await dsContract
+        .connect(addr1)
+        ["createItem(string,uint256)"](tokenURI, oldPrice);
 
       const transactionReceipt = await createItemTransaction.wait(1);
       const eventDetails =
@@ -87,11 +87,16 @@ if (developmentChains.includes(network.name)) {
       assert.equal(items[1].sold, false);
     });
 
+    it("Should get marketplace nft successfully", async () => {
+      const items = await dsContract.fetchMarketNFTs();
+
+      assert.equal(items.length, 2);
+    });
+
     it("Should update item price successfully", async () => {
-      const updateItemPriceTransaction = await dsContract.updateItemPrice(
-        2,
-        newPrice
-      );
+      const updateItemPriceTransaction = await dsContract
+        .connect(addr1)
+        .updateItemPrice(2, newPrice);
       await updateItemPriceTransaction.wait(1);
 
       const items = await dsContract.fetchMarketNFTs();
@@ -100,27 +105,63 @@ if (developmentChains.includes(network.name)) {
     });
 
     it("Should falied update item price because price not above 0", async () => {
-      await expect(dsContract.updateItemPrice(2, 0)).to.be.revertedWith(
-        "Price must be at least one wei"
-      );
+      await expect(
+        dsContract.connect(addr1).updateItemPrice(2, 0)
+      ).to.be.revertedWith("Price must be at least one wei");
     });
 
     it("Should falied update item price because item already deleted", async () => {
-      const deleteItemTransaction = await dsContract.deleteItem(2);
+      const deleteItemTransaction = await dsContract
+        .connect(addr1)
+        .deleteItem(2);
       await deleteItemTransaction.wait(1);
 
-      await expect(dsContract.updateItemPrice(2, 20)).to.be.revertedWith(
-        "This item already deleted!"
-      );
+      await expect(
+        dsContract.connect(addr1).updateItemPrice(2, 20)
+      ).to.be.revertedWith("This item already deleted!");
     });
 
     it("Should falied update item price because sender not the owner", async () => {
       await expect(
-        dsContract.connect(addr1).updateItemPrice(1, 20)
+        dsContract.connect(addr2).updateItemPrice(1, 20)
       ).to.be.revertedWith("UnAuthorized!");
+    });
+
+    it("Should buy process falied because item has no price", async () => {
+      const itemId = await createItem(dsContract, "AnyString", addr1, 0);
+
+      await expect(
+        dsContract.connect(addr2).buyItem(itemId, {
+          value: ethers.utils.parseEther("1.0"),
+        })
+      ).to.be.revertedWith("Not able to buy!");
     });
   });
 } else {
   // eslint-disable-next-line no-unused-expressions
   describe.skip;
 }
+
+const createItem = async (
+  contract: any,
+  tokenURI: string,
+  address: any,
+  price: number
+) => {
+  let createItemTransaction: any;
+
+  if (price === 0) {
+    createItemTransaction = await contract
+      .connect(address)
+      ["createItem(string)"](tokenURI);
+  } else {
+    createItemTransaction = await contract
+      .connect(address)
+      ["createItem(string,uint256)"](tokenURI, price);
+  }
+  const transactionReceipt = await createItemTransaction.wait(1);
+  const eventDetails =
+    transactionReceipt.events[transactionReceipt.events.length - 1].args;
+
+  return +eventDetails.itemId.toString();
+};
