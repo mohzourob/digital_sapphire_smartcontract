@@ -127,6 +127,58 @@ if (developmentChains.includes(network.name)) {
       ).to.be.revertedWith("UnAuthorized!");
     });
 
+    it("should buy process success", async () => {
+      const itemId = await createItem(dsContract, "AnyString", addr1, 10);
+      const itemPrice = "10.0";
+      const feeValue = 0.025;
+
+      const {
+        addr1: addr1BalanceBefore,
+        addr2: addr2BalanceBefore,
+        owner: ownerBalanceBefore,
+      } = await getAddressBalancesInEth(
+        addr1.address,
+        addr2.address,
+        owner.address
+      );
+
+      const buyTransaction = await dsContract.connect(addr2).buyItem(itemId, {
+        value: ethers.utils.parseEther(itemPrice),
+      });
+
+      await buyTransaction.wait(1);
+
+      const items = await dsContract.fetchMarketNFTs();
+
+      const item = items.filter((i: any) => +i.itemId.toString() === itemId)[0];
+
+      assert.equal(item.seller, addr1.address);
+      assert.equal(item.owner, addr2.address);
+      assert.equal(item.sold, true);
+
+      // check balances
+
+      const {
+        addr1: addr1BalanceAfter,
+        addr2: addr2BalanceAfter,
+        owner: ownerBalanceAfter,
+      } = await getAddressBalancesInEth(
+        addr1.address,
+        addr2.address,
+        owner.address
+      );
+
+      assert.equal(
+        +ownerBalanceBefore + +itemPrice * feeValue,
+        +ownerBalanceAfter
+      );
+      assert.isAtLeast(
+        +addr1BalanceBefore + (+itemPrice - +itemPrice * feeValue),
+        +addr1BalanceAfter
+      );
+      assert.isAtLeast(+addr2BalanceBefore - +itemPrice, +addr2BalanceAfter);
+    });
+
     it("Should buy process failed because item has no price", async () => {
       const itemId = await createItem(dsContract, "AnyString", addr1, 0);
 
@@ -137,22 +189,22 @@ if (developmentChains.includes(network.name)) {
       ).to.be.revertedWith("Not able to buy!");
     });
 
-    it("Should buy process failed because value less than item price", async ()=>{
+    it("Should buy process failed because value less than item price", async () => {
       const itemId = await createItem(dsContract, "AnyString", addr1, 10);
 
       await expect(
         dsContract.connect(addr2).buyItem(itemId, {
           value: ethers.utils.parseEther("1.0"),
         })
-      ).to.be.revertedWith("Please submit asking price in order to countinue");      
+      ).to.be.revertedWith("Please submit asking price in order to countinue");
     });
 
-    it("Should buy process failed because item already sold", async ()=>{
+    it("Should buy process failed because item already sold", async () => {
       const itemId = await createItem(dsContract, "AnyString", addr1, 10);
 
       const buyTransaction = await dsContract.connect(addr2).buyItem(itemId, {
         value: ethers.utils.parseEther("10.0"),
-      })
+      });
 
       await buyTransaction.wait(1);
 
@@ -160,10 +212,10 @@ if (developmentChains.includes(network.name)) {
         dsContract.connect(addr2).buyItem(itemId, {
           value: ethers.utils.parseEther("10.0"),
         })
-      ).to.be.revertedWith("Item already sold"); 
+      ).to.be.revertedWith("Item already sold");
     });
 
-    it("Should buy failed because you are the owner of this item", async ()=>{
+    it("Should buy failed because you are the owner of this item", async () => {
       const itemId = await createItem(dsContract, "AnyString", addr1, 10);
 
       await expect(
@@ -171,23 +223,22 @@ if (developmentChains.includes(network.name)) {
           value: ethers.utils.parseEther("10.0"),
         })
       ).to.be.revertedWith("You are the owner of this token!");
-    })
+    });
 
-
-    it("Should buy failed because item already deleted", async ()=>{
+    it("Should buy failed because item already deleted", async () => {
       const itemId = await createItem(dsContract, "AnyString", addr1, 10);
 
       const deleteItemTransaction = await dsContract
-      .connect(addr1)
-      .deleteItem(itemId);
-    await deleteItemTransaction.wait(1);
+        .connect(addr1)
+        .deleteItem(itemId);
+      await deleteItemTransaction.wait(1);
 
-    await expect(
-      dsContract.connect(addr2).buyItem(itemId, {
-        value: ethers.utils.parseEther("10.0"),
-      })
-    ).to.be.revertedWith("This item already deleted!");
-    })
+      await expect(
+        dsContract.connect(addr2).buyItem(itemId, {
+          value: ethers.utils.parseEther("10.0"),
+        })
+      ).to.be.revertedWith("This item already deleted!");
+    });
   });
 } else {
   // eslint-disable-next-line no-unused-expressions
@@ -216,4 +267,40 @@ const createItem = async (
     transactionReceipt.events[transactionReceipt.events.length - 1].args;
 
   return +eventDetails.itemId.toString();
+};
+
+const getAddressBalancesInEth = async (
+  addr1: string,
+  addr2: string,
+  owner: string
+) => {
+  const firstAddressBalanceInWei = (+(await ethers.provider.getBalance(
+    addr1
+  ))).toLocaleString("fullwide", { useGrouping: false });
+
+  const firstAddressBalanceInEth = ethers.utils.formatEther(
+    firstAddressBalanceInWei
+  );
+
+  const secondAddressBalanceInWei = (+(await ethers.provider.getBalance(
+    addr2
+  ))).toLocaleString("fullwide", { useGrouping: false });
+
+  const secondAddressBalanceInEth = ethers.utils.formatEther(
+    secondAddressBalanceInWei
+  );
+
+  const ownerAddressBalanceInWei = (+(await ethers.provider.getBalance(
+    owner
+  ))).toLocaleString("fullwide", { useGrouping: false });
+
+  const ownerAddressBalanceInEth = ethers.utils.formatEther(
+    ownerAddressBalanceInWei
+  );
+
+  return {
+    addr1: firstAddressBalanceInEth,
+    addr2: secondAddressBalanceInEth,
+    owner: ownerAddressBalanceInEth,
+  };
 };
