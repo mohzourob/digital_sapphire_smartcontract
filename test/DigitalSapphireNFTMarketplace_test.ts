@@ -93,6 +93,16 @@ if (developmentChains.includes(network.name)) {
       assert.equal(items.length, 2);
     });
 
+    it("Should get user items success", async () => {
+      const userItems = await dsContract.connect(addr1).fetchNFTsForOwner();
+
+      const isAllOwneredByUser = userItems.every(
+        (i: any) => i.owner === addr1.address
+      );
+
+      assert.equal(isAllOwneredByUser, true);
+    });
+
     it("Should update item price successfully", async () => {
       const updateItemPriceTransaction = await dsContract
         .connect(addr1)
@@ -254,7 +264,7 @@ if (developmentChains.includes(network.name)) {
 
       assert.equal(item._isDeleted, true);
 
-      const userItems = await dsContract.fetchNFTsForOwner();
+      const userItems = await dsContract.connect(addr1).fetchNFTsForOwner();
 
       item = userItems.filter((i: any) => +i.itemId.toString() === itemId);
 
