@@ -189,6 +189,18 @@ if (developmentChains.includes(network.name)) {
       assert.isAtLeast(+addr2BalanceBefore - +itemPrice, +addr2BalanceAfter);
     });
 
+    it("Should get bought items success for user", async () => {
+      const userItems = await dsContract
+        .connect(addr2)
+        .fetchNFTsBoughtForOwner();
+
+      const isAllBoughtByUser = userItems.every(
+        (i: any) => i.owner === addr2.address && i.sold === true
+      );
+
+      assert.equal(isAllBoughtByUser, true);
+    });
+
     it("Should buy process failed because item has no price", async () => {
       const itemId = await createItem(dsContract, "AnyString", addr1, 0);
 
