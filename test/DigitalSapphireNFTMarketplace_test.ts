@@ -178,15 +178,25 @@ if (developmentChains.includes(network.name)) {
         owner.address
       );
 
-      assert.isAtLeast(
-        +ownerBalanceBefore + +itemPrice * feeValue,
-        +ownerBalanceAfter
+      assert.equal(
+        (+ownerBalanceBefore + +itemPrice * feeValue).toFixed(10),
+        (+ownerBalanceAfter).toFixed(10),
+        "Owner balance check"
       );
-      assert.isAtLeast(
-        +addr1BalanceBefore + (+itemPrice - +itemPrice * feeValue),
-        +addr1BalanceAfter
+
+      assert.equal(
+        (+addr1BalanceBefore + (+itemPrice - +itemPrice * feeValue)).toFixed(
+          10
+        ),
+        (+addr1BalanceAfter).toFixed(10),
+        "Address 1 balance check"
       );
-      assert.isAtLeast(+addr2BalanceBefore - +itemPrice, +addr2BalanceAfter);
+
+      assert.equal(
+        (+addr2BalanceBefore - +itemPrice).toFixed(10),
+        (+addr2BalanceAfter).toFixed(10),
+        "Address 2 balance check"
+      );
     });
 
     it("Should get bought items success for user", async () => {
