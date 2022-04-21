@@ -168,7 +168,7 @@ if (developmentChains.includes(network.name)) {
         owner.address
       );
 
-      assert.equal(
+      assert.isAtLeast(
         +ownerBalanceBefore + +itemPrice * feeValue,
         +ownerBalanceAfter
       );
@@ -237,6 +237,27 @@ if (developmentChains.includes(network.name)) {
         dsContract.connect(addr2).buyItem(itemId, {
           value: ethers.utils.parseEther("10.0"),
         })
+      ).to.be.revertedWith("This item already deleted!");
+    });
+
+    it("Should delete item failed because he not the owner", async () => {
+      const itemId = await createItem(dsContract, "AnyString", addr1, 10);
+
+      await expect(
+        dsContract.connect(addr2).deleteItem(itemId)
+      ).to.be.revertedWith("UnAuthorized!");
+    });
+
+    it("Should delete item failed because this item already sold", async () => {
+      const itemId = await createItem(dsContract, "AnyString", addr1, 10);
+
+      const deleteItemTransaction = await dsContract
+        .connect(addr1)
+        .deleteItem(itemId);
+      await deleteItemTransaction.wait(1);
+
+      await expect(
+        dsContract.connect(addr1).deleteItem(itemId)
       ).to.be.revertedWith("This item already deleted!");
     });
   });

@@ -149,7 +149,6 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
 
     function deleteItem(uint256 itemId) public {
         require(msg.sender == _marketItems[itemId].owner, "UnAuthorized!");
-        require(_marketItems[itemId].sold != true, "This item already sold!");
         require(
             _marketItems[itemId]._isDeleted != true,
             "This item already deleted!"
