@@ -240,6 +240,27 @@ if (developmentChains.includes(network.name)) {
       ).to.be.revertedWith("This item already deleted!");
     });
 
+    it("Should delete item success", async () => {
+      const itemId = await createItem(dsContract, "AnyString", addr1, 10);
+
+      const deleteItemTransaction = await dsContract
+        .connect(addr1)
+        .deleteItem(itemId);
+      await deleteItemTransaction.wait(1);
+
+      const items = await dsContract.fetchMarketNFTs();
+
+      let item = items.filter((i: any) => +i.itemId.toString() === itemId)[0];
+
+      assert.equal(item._isDeleted, true);
+
+      const userItems = await dsContract.fetchNFTsForOwner();
+
+      item = userItems.filter((i: any) => +i.itemId.toString() === itemId);
+
+      assert.equal(item.length, 0);
+    });
+
     it("Should delete item failed because he not the owner", async () => {
       const itemId = await createItem(dsContract, "AnyString", addr1, 10);
 
