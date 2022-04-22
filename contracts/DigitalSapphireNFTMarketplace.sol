@@ -67,7 +67,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         uint256 price
     );
 
-    constructor() ERC721("DigitalSapphire", "DGS") {
+    constructor() ERC721("DigitalSapphireMarket", "DGSM") {
         // 250 basic points = 2.5 pct
         _contractFee = 250;
     }
@@ -113,21 +113,6 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         returns (uint256)
     {
         return (_amountOfWei * _contractFee) / 10000;
-    }
-
-    function findElementInArray(int256 element, uint256[] calldata arr)
-        private
-        pure
-        returns (int256)
-    {
-        bytes32 encodedElement = keccak256(abi.encode(element));
-
-        for (uint256 i = 0; i < arr.length; i++) {
-            if (encodedElement == keccak256(abi.encode(element))) {
-                return int256(i);
-            }
-        }
-        return -1;
     }
 
     function mintToken(string calldata tokenURI) private returns (uint256) {
