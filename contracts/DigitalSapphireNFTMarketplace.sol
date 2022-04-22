@@ -35,7 +35,6 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
 
     Counters.Counter private _tokenIds;
     Counters.Counter private _tokensSold;
-    Counters.Counter private _tokensDeleted;
     uint256 private _contractFee;
     uint256 private _contractProfits;
 
@@ -154,7 +153,6 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
             "This item already deleted!"
         );
         uint256 tokenId = _marketItems[itemId].tokenId;
-        _tokensDeleted.increment();
 
         // delete item from array
 
@@ -322,6 +320,12 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         return _tokenIds.current();
     }
 
+
+    function getMarketNFTsCounterForSoldItems() public view returns(uint256){
+        return _tokensSold.current();
+    }
+
+    
     function fetchMarketNFTs() public view returns (NFTItem[] memory) {
         uint256 numberOfItems = _tokenIds.current();
 
