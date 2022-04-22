@@ -317,6 +317,11 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         emit purchaseDone(msg.sender, itemId, _marketItems[itemId].price);
     }
 
+
+    function getMarketNFTsCounter() public view returns(uint256){
+        return _tokenIds.current();
+    }
+
     function fetchMarketNFTs() public view returns (NFTItem[] memory) {
         uint256 numberOfItems = _tokenIds.current();
 
