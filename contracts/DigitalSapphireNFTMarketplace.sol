@@ -116,7 +116,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         return (_amountOfWei * _contractFee) / 10000;
     }
 
-    function findElementInArray(int256 element, uint256[] memory arr)
+    function findElementInArray(int256 element, uint256[] calldata arr)
         private
         pure
         returns (int256)
@@ -131,7 +131,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         return -1;
     }
 
-    function mintToken(string memory tokenURI) private returns (uint256) {
+    function mintToken(string calldata tokenURI) private returns (uint256) {
         _tokensCounter.increment();
         uint256 newItemId = _tokensCounter.current();
 
@@ -180,7 +180,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         }
     }
 
-    function createItem(string memory tokenURI) public {
+    function createItem(string calldata tokenURI) public {
         uint256 tokenId = mintToken(tokenURI);
 
         _tokenIds.increment();
@@ -215,7 +215,7 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
 
     // create item with out add this item to listing page with price.
     // nonReentrant is a modifier to prevent reentry attak.
-    function createItem(string memory tokenURI, uint256 price) public {
+    function createItem(string calldata tokenURI, uint256 price) public {
         require(price > 0, "Price must be at least one wei");
 
         uint256 tokenId = mintToken(tokenURI);
