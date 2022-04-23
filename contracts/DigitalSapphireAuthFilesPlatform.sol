@@ -35,7 +35,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         uint256 planId;
         uint256 numberOfCollections;
         uint256 numberOfItemsForEveryCollection;
-        SubscribePlansTypes planType;
+        string planType;
         uint256 planPriceInUSD;
         bool isPrivate;
         bool isDeleted;
@@ -68,7 +68,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
             currentIndex,
             10,
             10000,
-            SubscribePlansTypes.BASIC,
+            "BASIC",
             50,
             false,
             false
@@ -81,7 +81,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
             currentIndex,
             100,
             100000,
-            SubscribePlansTypes.PREMIUM,
+            "STANDARD",
             100,
             false,
             false
@@ -94,7 +94,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
             currentIndex,
             1000,
             1000000,
-            SubscribePlansTypes.PREMIUM,
+            "PREMIUM",
             200,
             false,
             false
@@ -136,6 +136,18 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         return items;
     }
 
+    // get subscribe plans details for owner
+    function getSubscribePlansDetailsForOwner() public view onlyOwner returns (SubscribePlan[] memory){
+        uint256 numberOfItems = _palnsCounter.current();
+
+        SubscribePlan[] memory items = new SubscribePlan[](numberOfItems);
+        for (uint256 i = 0; i < numberOfItems; i++) {
+            items[i] = _subscribePlansDetails[i + 1];
+        }
+
+        return items;
+    }
+
 
     function mintToken(string calldata tokenURI) private returns (uint256) {
         _tokensCounter.increment();
@@ -152,7 +164,4 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
 
         return newItemId;
     }
-
-
-
 }
