@@ -123,6 +123,11 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         return _contractProfits;
     }
 
+    // compare two string function
+    function compareStrings(string memory a, string memory b) private view returns (bool) {
+        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    }
+
     // get subscribe plans details for public
     function getSubscribePlansDetailsForPublic() public view returns(SubscribePlan[] memory) {
         SubscribePlan[] memory items = new SubscribePlan[](3);
@@ -183,7 +188,17 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         _subscribePlansDetails[_planId].planPriceInUSD = _planPriceInUSD;
     }
 
-    
+    function deletePlan(uint256 _planId) public onlyOwner{
+        require(_planId > 0 , "Enter valid plan ID");
+
+
+        require(_subscribePlansDetails[_planId].isDeleted == false, "Plan already deleted.");
+        require(compareStrings(_subscribePlansDetails[_planId].planType, "CUSTOM") == true, "Invalid plan.");
+
+        _subscribePlansDetails[_planId].isDeleted = true;
+        
+    }
+
     function mintToken(string calldata tokenURI) private returns (uint256) {
         _tokensCounter.increment();
         uint256 newItemId = _tokensCounter.current();
