@@ -163,6 +163,27 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         );
     }
 
+
+    function updatePlanNumberOfCollections(uint256 _planId, uint256 _numberOfCollections ) public onlyOwner{
+        require(_planId > 0 , "Enter valid plan ID");
+        require(_numberOfCollections > 0 , "Enter valid number of collections");
+        _subscribePlansDetails[_planId].numberOfCollections = _numberOfCollections;
+    }
+
+
+    function updatePlanNumerOfItemsForEveryCokkection(uint256 _planId, uint256 _numberOfItemsForEveryCollection) public onlyOwner {
+        require(_planId > 0 , "Enter valid plan ID");
+        require(_numberOfItemsForEveryCollection > 0 , "Enter valid number of items");
+        _subscribePlansDetails[_planId].numberOfItemsForEveryCollection = _numberOfItemsForEveryCollection;
+    }
+
+    function updatePlanPriceInUSD(uint256 _planId, uint256 _planPriceInUSD) public onlyOwner{
+        require(_planId > 0 , "Enter valid plan ID");
+        require(_planPriceInUSD > 0 , "Enter valid price in USD");
+        _subscribePlansDetails[_planId].planPriceInUSD = _planPriceInUSD;
+    }
+
+    
     function mintToken(string calldata tokenURI) private returns (uint256) {
         _tokensCounter.increment();
         uint256 newItemId = _tokensCounter.current();
