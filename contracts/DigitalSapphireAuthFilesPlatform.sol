@@ -148,6 +148,20 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         return items;
     }
 
+    // add custom plan by owner
+    function addCustomPlan(uint256 _numberOfCollections, uint256 _numberOfItemsForEveryCollection, uint256 _planPriceInUSD) public onlyOwner{
+        _palnsCounter.increment();
+        uint256 currentIndex = _palnsCounter.current();
+        _subscribePlansDetails[currentIndex] = SubscribePlan(
+            currentIndex,
+            _numberOfCollections,
+            _numberOfItemsForEveryCollection,
+            "CUSTOM",
+            _planPriceInUSD,
+            true,
+            false
+        );
+    }
 
     function mintToken(string calldata tokenURI) private returns (uint256) {
         _tokensCounter.increment();
