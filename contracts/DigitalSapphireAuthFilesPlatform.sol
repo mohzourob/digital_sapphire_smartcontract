@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "hardhat/console.sol";
 
 
@@ -48,6 +49,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     mapping(uint256 => AuthItem) private _marketItems;
     mapping(address => uint256[]) private _ownerToArrayOfTokens;
     mapping (uint256 => SubscribePlan) private _subscribePlansDetails;
+    mapping(address => uint256) private _userToSubscribePlan;
 
     event NewItemAdded(
         string tokenURI,
@@ -170,33 +172,74 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
 
 
     function updatePlanNumberOfCollections(uint256 _planId, uint256 _numberOfCollections ) public onlyOwner{
-        require(_planId > 0 , "Enter valid plan ID");
+        require(_subscribePlansDetails[_planId].planId > 0, "Plan does not exist");
         require(_numberOfCollections > 0 , "Enter valid number of collections");
         _subscribePlansDetails[_planId].numberOfCollections = _numberOfCollections;
     }
 
 
     function updatePlanNumerOfItemsForEveryCokkection(uint256 _planId, uint256 _numberOfItemsForEveryCollection) public onlyOwner {
-        require(_planId > 0 , "Enter valid plan ID");
+        require(_subscribePlansDetails[_planId].planId > 0, "Plan does not exist");
         require(_numberOfItemsForEveryCollection > 0 , "Enter valid number of items");
         _subscribePlansDetails[_planId].numberOfItemsForEveryCollection = _numberOfItemsForEveryCollection;
     }
 
     function updatePlanPriceInUSD(uint256 _planId, uint256 _planPriceInUSD) public onlyOwner{
-        require(_planId > 0 , "Enter valid plan ID");
+        require(_subscribePlansDetails[_planId].planId > 0, "Plan does not exist");
         require(_planPriceInUSD > 0 , "Enter valid price in USD");
         _subscribePlansDetails[_planId].planPriceInUSD = _planPriceInUSD;
     }
 
     function deletePlan(uint256 _planId) public onlyOwner{
-        require(_planId > 0 , "Enter valid plan ID");
-
-
+        require(_subscribePlansDetails[_planId].planId > 0, "Plan does not exist");
         require(_subscribePlansDetails[_planId].isDeleted == false, "Plan already deleted.");
         require(compareStrings(_subscribePlansDetails[_planId].planType, "CUSTOM") == true, "Invalid plan.");
 
         _subscribePlansDetails[_planId].isDeleted = true;
         
+    }
+
+
+    function userSubscribeInPlan(uint256 planId) public payable {
+        SubscribePlan memory plan = _subscribePlansDetails[planId];
+        require(plan.planId > 0, "Plan does not exist");
+
+        //ToDo active that line in real networks.
+        // require((plan.planPriceInUSD * 10 ** 18) <= getConversionRate(msg.value), "You need to spend more ETH!");
+
+        // send money to the owner of contract :P
+        payable(owner()).transfer(msg.value);
+
+        // calc the profits
+        _contractProfits += msg.value;
+
+        // subscribe plan to user
+        _userToSubscribePlan[msg.sender] = planId;
+    }
+
+    function userGetHisSubscribePlan() public view returns(uint256 planId, uint256 numberOfCollections, uint256 numberOfItemsForEveryCollection, string memory planType, uint256 planPriceInUSD){
+        SubscribePlan memory planDetils = _subscribePlansDetails[_userToSubscribePlan[msg.sender]];
+        return (planDetils.planId, planDetils.numberOfCollections, planDetils.numberOfItemsForEveryCollection, planDetils.planType, planDetils.planPriceInUSD);
+    }
+
+
+    function ownerGetUserSubscribePlan(address user) public view onlyOwner returns(uint256 planId, uint256 numberOfCollections, uint256 numberOfItemsForEveryCollection, string memory planType, uint256 planPriceInUSD){
+        SubscribePlan memory planDetils = _subscribePlansDetails[_userToSubscribePlan[user]];
+        return (planDetils.planId, planDetils.numberOfCollections, planDetils.numberOfItemsForEveryCollection, planDetils.planType, planDetils.planPriceInUSD);
+    }
+
+    function getEthPriceInUSD() public view returns(uint256){ 
+        // todo change address base on network will used.
+        AggregatorV3Interface priceFee = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e);
+       (,int price,,,)  = priceFee.latestRoundData();
+        return uint256(price * 10000000000);
+    }
+    
+    
+    function getConversionRate(uint256 ethAmount) private view returns (uint256){
+        uint256 ethPrice = getEthPriceInUSD();
+        uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1000000000000000000;
+        return ethAmountInUsd;
     }
 
     function mintToken(string calldata tokenURI) private returns (uint256) {
