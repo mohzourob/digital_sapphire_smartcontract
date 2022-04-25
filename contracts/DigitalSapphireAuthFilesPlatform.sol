@@ -29,7 +29,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         uint256 itemId;
         uint256 tokenId;
         address owner;
-        bool _isDeleted;
+        bool isDeleted;
     }
 
     // plans
@@ -318,5 +318,11 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         }
 
         return items;
+    }
+
+    function userDeleteItem(uint256 itemId) public {
+        require(msg.sender == _marketItems[itemId].owner, "UnAuthorized");
+
+        _marketItems[itemId].isDeleted = true;
     }
 }
