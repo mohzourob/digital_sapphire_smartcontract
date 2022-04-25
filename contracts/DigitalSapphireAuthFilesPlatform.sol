@@ -25,6 +25,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
 
     // item
     struct AuthItem {
+        string tokenURI;
         uint256 itemId;
         uint256 tokenId;
         address owner;
@@ -50,6 +51,8 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     mapping(address => uint256[]) private _ownerToArrayOfTokens;
     mapping (uint256 => SubscribePlan) private _subscribePlansDetails;
     mapping(address => uint256) private _userToSubscribePlan;
+    mapping(address => Counters.Counter) private _userToNumberOfItems;
+    mapping(address => Counters.Counter) private _userToNumberOfCollections;
 
     event NewItemAdded(
         string tokenURI,
@@ -128,6 +131,38 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     // compare two string function
     function compareStrings(string memory a, string memory b) private view returns (bool) {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    }
+
+    // get eth price ETH/USD from chainlink
+    function getEthPriceInUSD() public view returns(uint256){ 
+        // todo change address base on network will used.
+        AggregatorV3Interface priceFee = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e);
+       (,int price,,,)  = priceFee.latestRoundData();
+        return uint256(price * 10000000000);
+    }
+    
+    // price conversion
+    function getConversionRate(uint256 ethAmount) private view returns (uint256){
+        uint256 ethPrice = getEthPriceInUSD();
+        uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1000000000000000000;
+        return ethAmountInUsd;
+    }
+
+    // mint tokens
+    function mintToken(string calldata tokenURI) private returns (uint256) {
+        _tokensCounter.increment();
+        uint256 newItemId = _tokensCounter.current();
+
+        // mint item id
+        _mint(msg.sender, newItemId);
+
+        // save item id with token url
+        _setTokenURI(newItemId, tokenURI);
+
+        // give the marketplace the approval to transact between users.
+        setApprovalForAll(address(this), true);
+
+        return newItemId;
     }
 
     // get subscribe plans details for public
@@ -228,33 +263,37 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         return (planDetils.planId, planDetils.numberOfCollections, planDetils.numberOfItemsForEveryCollection, planDetils.planType, planDetils.planPriceInUSD);
     }
 
-    function getEthPriceInUSD() public view returns(uint256){ 
-        // todo change address base on network will used.
-        AggregatorV3Interface priceFee = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e);
-       (,int price,,,)  = priceFee.latestRoundData();
-        return uint256(price * 10000000000);
-    }
-    
-    
-    function getConversionRate(uint256 ethAmount) private view returns (uint256){
-        uint256 ethPrice = getEthPriceInUSD();
-        uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1000000000000000000;
-        return ethAmountInUsd;
-    }
+    function createItem(string calldata tokenURI) public {
+        SubscribePlan memory userPlan = _subscribePlansDetails[_userToSubscribePlan[msg.sender]];
+        require(userPlan.planId > 0, "Need to subscribe in plan to add item.");
+        require(_userToNumberOfItems[msg.sender].current() <= (userPlan.numberOfCollections * userPlan.numberOfItemsForEveryCollection), "You need to upgrade your plan!");
 
-    function mintToken(string calldata tokenURI) private returns (uint256) {
-        _tokensCounter.increment();
-        uint256 newItemId = _tokensCounter.current();
+        uint256 tokenId = mintToken(tokenURI);
 
-        // mint item id
-        _mint(msg.sender, newItemId);
+        _tokenIds.increment();
+        uint256 itemId = _tokenIds.current();
 
-        // save item id with token url
-        _setTokenURI(newItemId, tokenURI);
+        _marketItems[itemId] = AuthItem(
+            tokenURI,
+            itemId,
+            tokenId,
+            payable(msg.sender),
+            false
+        );
 
-        // give the marketplace the approval to transact between users.
-        setApprovalForAll(address(this), true);
+        _ownerToArrayOfTokens[msg.sender].push(itemId);
 
-        return newItemId;
+        // NFT transaction
+        IERC721(address(this)).transferFrom(msg.sender, address(this), tokenId);
+
+        // increase number of items user has
+        _userToNumberOfItems[msg.sender].increment();
+
+        emit NewItemAdded(
+            tokenURI,
+            itemId,
+            tokenId,
+            payable(msg.sender)
+        );
     }
 }
