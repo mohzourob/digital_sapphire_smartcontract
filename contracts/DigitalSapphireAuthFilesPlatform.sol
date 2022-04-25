@@ -296,4 +296,27 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
             payable(msg.sender)
         );
     }
+
+    function userGetHisItems() public view returns(AuthItem[] memory){
+        AuthItem[] memory items = new AuthItem[](
+            _userToNumberOfItems[msg.sender].current()
+        );
+
+        for (uint256 i = 0; i < _ownerToArrayOfTokens[msg.sender].length; i++) {
+            items[i] = _marketItems[_ownerToArrayOfTokens[msg.sender][i]];
+        }
+
+        return items;
+    }
+
+    function ownerGetAllItems() public view onlyOwner returns(AuthItem[] memory){
+        uint256 numberOfItems = _tokenIds.current();
+
+        AuthItem[] memory items = new AuthItem[](numberOfItems);
+        for (uint256 i = 0; i < numberOfItems; i++) {
+            items[i] = _marketItems[i + 1];
+        }
+
+        return items;
+    }
 }
