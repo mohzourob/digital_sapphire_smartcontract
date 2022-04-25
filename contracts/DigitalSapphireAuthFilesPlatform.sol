@@ -43,6 +43,11 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         bool isDeleted;
     }
 
+    struct UserPlanDetails {
+        uint256 planId;
+        uint256 expireAt;
+    }
+
     Counters.Counter private _tokensCounter;
     Counters.Counter private _tokenIds;
     Counters.Counter private _palnsCounter;
@@ -50,7 +55,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     mapping(uint256 => AuthItem) private _marketItems;
     mapping(address => uint256[]) private _ownerToArrayOfTokens;
     mapping (uint256 => SubscribePlan) private _subscribePlansDetails;
-    mapping(address => uint256) private _userToSubscribePlan;
+    mapping(address => UserPlanDetails) private _userToSubscribePlan;
     mapping(address => Counters.Counter) private _userToNumberOfItems;
     mapping(address => Counters.Counter) private _userToNumberOfCollections;
 
@@ -165,6 +170,12 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         return newItemId;
     }
 
+    // check if his plan if expire or not
+    modifier checkHisPlan {
+        require(block.timestamp <= _userToSubscribePlan[msg.sender].expireAt, "Re-submit ur plan");
+        _;
+    }
+
     // get subscribe plans details for public
     function getSubscribePlansDetailsForPublic() public view returns(SubscribePlan[] memory) {
         SubscribePlan[] memory items = new SubscribePlan[](3);
@@ -245,26 +256,30 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         // send money to the owner of contract :P
         payable(owner()).transfer(msg.value);
 
+        // add plan expire date
+
+
         // calc the profits
         _contractProfits += msg.value;
 
         // subscribe plan to user
-        _userToSubscribePlan[msg.sender] = planId;
+        _userToSubscribePlan[msg.sender] = UserPlanDetails(planId, block.timestamp + 30 days);
     }
 
-    function userGetHisSubscribePlan() public view returns(uint256 planId, uint256 numberOfCollections, uint256 numberOfItemsForEveryCollection, string memory planType, uint256 planPriceInUSD){
-        SubscribePlan memory planDetils = _subscribePlansDetails[_userToSubscribePlan[msg.sender]];
-        return (planDetils.planId, planDetils.numberOfCollections, planDetils.numberOfItemsForEveryCollection, planDetils.planType, planDetils.planPriceInUSD);
+    function userGetHisSubscribePlan() public view returns(uint256 planId, uint256 numberOfCollections, uint256 numberOfItemsForEveryCollection, string memory planType, uint256 planPriceInUSD, uint256 expireAt){
+        SubscribePlan memory planDetils = _subscribePlansDetails[_userToSubscribePlan[msg.sender].planId];
+        return (planDetils.planId, planDetils.numberOfCollections, planDetils.numberOfItemsForEveryCollection, planDetils.planType, planDetils.planPriceInUSD, _userToSubscribePlan[msg.sender].expireAt);
     }
 
 
-    function ownerGetUserSubscribePlan(address user) public view onlyOwner returns(uint256 planId, uint256 numberOfCollections, uint256 numberOfItemsForEveryCollection, string memory planType, uint256 planPriceInUSD){
-        SubscribePlan memory planDetils = _subscribePlansDetails[_userToSubscribePlan[user]];
-        return (planDetils.planId, planDetils.numberOfCollections, planDetils.numberOfItemsForEveryCollection, planDetils.planType, planDetils.planPriceInUSD);
+    function ownerGetUserSubscribePlan(address user) public view onlyOwner returns(uint256 planId, uint256 numberOfCollections, uint256 numberOfItemsForEveryCollection, string memory planType, uint256 planPriceInUSD, uint256 expireAt){
+        SubscribePlan memory planDetils = _subscribePlansDetails[_userToSubscribePlan[user].planId];
+        return (planDetils.planId, planDetils.numberOfCollections, planDetils.numberOfItemsForEveryCollection, planDetils.planType, planDetils.planPriceInUSD, _userToSubscribePlan[user].expireAt);
     }
 
-    function createItem(string calldata tokenURI) public {
-        SubscribePlan memory userPlan = _subscribePlansDetails[_userToSubscribePlan[msg.sender]];
+    function createItem(string calldata tokenURI) public checkHisPlan {
+        SubscribePlan memory userPlan = _subscribePlansDetails[_userToSubscribePlan[msg.sender].planId];
+        require(block.timestamp <= _userToSubscribePlan[msg.sender].expireAt, "Re-submit ur plan");
         require(userPlan.planId > 0, "Need to subscribe in plan to add item.");
         require(_userToNumberOfItems[msg.sender].current() <= (userPlan.numberOfCollections * userPlan.numberOfItemsForEveryCollection), "You need to upgrade your plan!");
 
@@ -297,7 +312,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         );
     }
 
-    function userGetHisItems() public view returns(AuthItem[] memory){
+    function userGetHisItems() public view checkHisPlan returns(AuthItem[] memory){
         AuthItem[] memory items = new AuthItem[](
             _userToNumberOfItems[msg.sender].current()
         );
@@ -320,7 +335,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         return items;
     }
 
-    function userDeleteItem(uint256 itemId) public {
+    function userDeleteItem(uint256 itemId) checkHisPlan public {
         require(msg.sender == _marketItems[itemId].owner, "UnAuthorized");
 
         _marketItems[itemId].isDeleted = true;
