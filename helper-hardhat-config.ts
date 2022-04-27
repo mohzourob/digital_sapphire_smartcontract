@@ -28,4 +28,4 @@ export const networkConfig = {
   },
 };
 
-const VERIFICATION_BLOCK_CONFIRMATIONS = 6;
+export const VERIFICATION_BLOCK_CONFIRMATIONS = 6;
