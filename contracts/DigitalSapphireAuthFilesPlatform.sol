@@ -250,8 +250,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         SubscribePlan memory plan = _subscribePlansDetails[planId];
         require(plan.planId > 0, "Plan does not exist");
 
-        //ToDo active that line in real networks.
-        // require((plan.planPriceInUSD * 10 ** 18) <= getConversionRate(msg.value), "You need to spend more ETH!");
+        require((plan.planPriceInUSD * 10 ** 18) <= getConversionRate(msg.value), "You need to spend more ETH!");
 
         // send money to the owner of contract :P
         payable(owner()).transfer(msg.value);
