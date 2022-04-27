@@ -56,6 +56,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     mapping(address => UserPlanDetails) private _userToSubscribePlan;
     mapping(address => Counters.Counter) private _userToNumberOfItems;
     mapping(address => Counters.Counter) private _userToNumberOfCollections;
+    address private aggregatorV3InterfaceAddress;
 
     event NewItemAdded(
         string tokenURI,
@@ -66,9 +67,10 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
 
     event ItemBurn(uint256 indexed itemId, uint256 indexed tokenId);
 
-    constructor() ERC721("DigitalSapphireAuth", "DGSA") {
+    constructor(address _aggregatorV3InterfaceAddress) ERC721("DigitalSapphireAuth", "DGSA") {
+        // add interface address base on network
+        aggregatorV3InterfaceAddress = _aggregatorV3InterfaceAddress;
         // add base plans
-
         // add basic plan
         _palnsCounter.increment();
         uint256 currentIndex = _palnsCounter.current();
@@ -138,8 +140,8 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
 
     // get eth price ETH/USD from chainlink
     function getEthPriceInUSD() public view returns(uint256){ 
-        // todo change address base on network will used.
-        AggregatorV3Interface priceFee = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e);
+        // koven address: 0x8A753747A1Fa494EC906cE90E9f37563A8AF630e 
+        AggregatorV3Interface priceFee = AggregatorV3Interface(aggregatorV3InterfaceAddress);
        (,int price,,,)  = priceFee.latestRoundData();
         return uint256(price * 10000000000);
     }
