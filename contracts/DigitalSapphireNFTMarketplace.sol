@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-// import "hardhat/console.sol";
 
 contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;

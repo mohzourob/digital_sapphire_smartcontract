@@ -136,7 +136,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     // compare two string function
     function compareStrings(string memory a, string memory b)
         private
-        view
+        pure
         returns (bool)
     {
         return (keccak256(abi.encodePacked((a))) ==
