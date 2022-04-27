@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 // security against transactions for multiple requests
@@ -298,17 +298,14 @@ contract DigitalSapphireNFTMarketplace is ERC721URIStorage, Ownable {
         emit purchaseDone(msg.sender, itemId, _marketItems[itemId].price);
     }
 
-
-    function getMarketNFTsCounter() public view returns(uint256){
+    function getMarketNFTsCounter() public view returns (uint256) {
         return _tokenIds.current();
     }
 
-
-    function getMarketNFTsCounterForSoldItems() public view returns(uint256){
+    function getMarketNFTsCounterForSoldItems() public view returns (uint256) {
         return _tokensSold.current();
     }
 
-    
     function fetchMarketNFTs() public view returns (NFTItem[] memory) {
         uint256 numberOfItems = _tokenIds.current();
 

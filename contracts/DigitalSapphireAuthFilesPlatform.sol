@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 // security against transactions for multiple requests
@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-
 
 contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;
@@ -31,7 +30,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     }
 
     // plans
-    struct SubscribePlan{
+    struct SubscribePlan {
         uint256 planId;
         uint256 numberOfCollections;
         uint256 numberOfItemsForEveryCollection;
@@ -52,7 +51,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     uint256 private _contractProfits;
     mapping(uint256 => AuthItem) private _marketItems;
     mapping(address => uint256[]) private _ownerToArrayOfTokens;
-    mapping (uint256 => SubscribePlan) private _subscribePlansDetails;
+    mapping(uint256 => SubscribePlan) private _subscribePlansDetails;
     mapping(address => UserPlanDetails) private _userToSubscribePlan;
     mapping(address => Counters.Counter) private _userToNumberOfItems;
     mapping(address => Counters.Counter) private _userToNumberOfCollections;
@@ -67,7 +66,9 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
 
     event ItemBurn(uint256 indexed itemId, uint256 indexed tokenId);
 
-    constructor(address _aggregatorV3InterfaceAddress) ERC721("DigitalSapphireAuth", "DGSA") {
+    constructor(address _aggregatorV3InterfaceAddress)
+        ERC721("DigitalSapphireAuth", "DGSA")
+    {
         // add interface address base on network
         aggregatorV3InterfaceAddress = _aggregatorV3InterfaceAddress;
         // add base plans
@@ -111,7 +112,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         );
     }
 
-   // fall back to recieve ether directly to this contract when has body msg
+    // fall back to recieve ether directly to this contract when has body msg
     fallback() external payable {}
 
     // recieve ether directly when does not body msg
@@ -127,27 +128,37 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         return address(this).balance;
     }
 
-    
     // get contract profits
     function getContractProfits() public view onlyOwner returns (uint256) {
         return _contractProfits;
     }
 
     // compare two string function
-    function compareStrings(string memory a, string memory b) private view returns (bool) {
-        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    function compareStrings(string memory a, string memory b)
+        private
+        view
+        returns (bool)
+    {
+        return (keccak256(abi.encodePacked((a))) ==
+            keccak256(abi.encodePacked((b))));
     }
 
     // get eth price ETH/USD from chainlink
-    function getEthPriceInUSD() public view returns(uint256){ 
-        // koven address: 0x8A753747A1Fa494EC906cE90E9f37563A8AF630e 
-        AggregatorV3Interface priceFee = AggregatorV3Interface(aggregatorV3InterfaceAddress);
-       (,int price,,,)  = priceFee.latestRoundData();
+    function getEthPriceInUSD() public view returns (uint256) {
+        // koven address: 0x8A753747A1Fa494EC906cE90E9f37563A8AF630e
+        AggregatorV3Interface priceFee = AggregatorV3Interface(
+            aggregatorV3InterfaceAddress
+        );
+        (, int256 price, , , ) = priceFee.latestRoundData();
         return uint256(price * 10000000000);
     }
-    
+
     // price conversion
-    function getConversionRate(uint256 ethAmount) private view returns (uint256){
+    function getConversionRate(uint256 ethAmount)
+        private
+        view
+        returns (uint256)
+    {
         uint256 ethPrice = getEthPriceInUSD();
         uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1000000000000000000;
         return ethAmountInUsd;
@@ -171,17 +182,24 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     }
 
     // check if his plan if expire or not
-    modifier checkHisPlan {
-        require(block.timestamp <= _userToSubscribePlan[msg.sender].expireAt, "Re-submit ur plan");
+    modifier checkHisPlan() {
+        require(
+            block.timestamp <= _userToSubscribePlan[msg.sender].expireAt,
+            "Re-submit ur plan"
+        );
         _;
     }
 
     // get subscribe plans details for public
-    function getSubscribePlansDetailsForPublic() public view returns(SubscribePlan[] memory) {
+    function getSubscribePlansDetailsForPublic()
+        public
+        view
+        returns (SubscribePlan[] memory)
+    {
         SubscribePlan[] memory items = new SubscribePlan[](3);
         for (uint256 i = 0; i < 3; i++) {
             SubscribePlan memory item = _subscribePlansDetails[i + 1];
-            if(!item.isPrivate){
+            if (!item.isPrivate) {
                 items[i] = item;
             }
         }
@@ -190,7 +208,12 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     }
 
     // get subscribe plans details for owner
-    function getSubscribePlansDetailsForOwner() public view onlyOwner returns (SubscribePlan[] memory){
+    function getSubscribePlansDetailsForOwner()
+        public
+        view
+        onlyOwner
+        returns (SubscribePlan[] memory)
+    {
         uint256 numberOfItems = _palnsCounter.current();
 
         SubscribePlan[] memory items = new SubscribePlan[](numberOfItems);
@@ -202,7 +225,11 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     }
 
     // add custom plan by owner
-    function addCustomPlan(uint256 _numberOfCollections, uint256 _numberOfItemsForEveryCollection, uint256 _planPriceInUSD) public onlyOwner{
+    function addCustomPlan(
+        uint256 _numberOfCollections,
+        uint256 _numberOfItemsForEveryCollection,
+        uint256 _planPriceInUSD
+    ) public onlyOwner {
         _palnsCounter.increment();
         uint256 currentIndex = _palnsCounter.current();
         _subscribePlansDetails[currentIndex] = SubscribePlan(
@@ -216,60 +243,115 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         );
     }
 
-
-    function updatePlanNumberOfCollections(uint256 _planId, uint256 _numberOfCollections ) public onlyOwner{
-        require(_subscribePlansDetails[_planId].planId > 0, "Plan does not exist");
-        require(_numberOfCollections > 0 , "Enter valid number of collections");
-        _subscribePlansDetails[_planId].numberOfCollections = _numberOfCollections;
+    function updatePlanNumberOfCollections(
+        uint256 _planId,
+        uint256 _numberOfCollections
+    ) public onlyOwner {
+        require(
+            _subscribePlansDetails[_planId].planId > 0,
+            "Plan does not exist"
+        );
+        require(_numberOfCollections > 0, "Enter valid number of collections");
+        _subscribePlansDetails[_planId]
+            .numberOfCollections = _numberOfCollections;
     }
 
-
-    function updatePlanNumerOfItemsForEveryCokkection(uint256 _planId, uint256 _numberOfItemsForEveryCollection) public onlyOwner {
-        require(_subscribePlansDetails[_planId].planId > 0, "Plan does not exist");
-        require(_numberOfItemsForEveryCollection > 0 , "Enter valid number of items");
-        _subscribePlansDetails[_planId].numberOfItemsForEveryCollection = _numberOfItemsForEveryCollection;
+    function updatePlanNumerOfItemsForEveryCokkection(
+        uint256 _planId,
+        uint256 _numberOfItemsForEveryCollection
+    ) public onlyOwner {
+        require(
+            _subscribePlansDetails[_planId].planId > 0,
+            "Plan does not exist"
+        );
+        require(
+            _numberOfItemsForEveryCollection > 0,
+            "Enter valid number of items"
+        );
+        _subscribePlansDetails[_planId]
+            .numberOfItemsForEveryCollection = _numberOfItemsForEveryCollection;
     }
 
-    function updatePlanPriceInUSD(uint256 _planId, uint256 _planPriceInUSD) public onlyOwner{
-        require(_subscribePlansDetails[_planId].planId > 0, "Plan does not exist");
-        require(_planPriceInUSD > 0 , "Enter valid price in USD");
+    function updatePlanPriceInUSD(uint256 _planId, uint256 _planPriceInUSD)
+        public
+        onlyOwner
+    {
+        require(
+            _subscribePlansDetails[_planId].planId > 0,
+            "Plan does not exist"
+        );
+        require(_planPriceInUSD > 0, "Enter valid price in USD");
         _subscribePlansDetails[_planId].planPriceInUSD = _planPriceInUSD;
     }
 
-    function deletePlan(uint256 _planId) public onlyOwner{
-        require(_subscribePlansDetails[_planId].planId > 0, "Plan does not exist");
-        require(_subscribePlansDetails[_planId].isDeleted == false, "Plan already deleted.");
-        require(compareStrings(_subscribePlansDetails[_planId].planType, "CUSTOM") == true, "Invalid plan.");
+    function deletePlan(uint256 _planId) public onlyOwner {
+        require(
+            _subscribePlansDetails[_planId].planId > 0,
+            "Plan does not exist"
+        );
+        require(
+            _subscribePlansDetails[_planId].isDeleted == false,
+            "Plan already deleted."
+        );
+        require(
+            compareStrings(
+                _subscribePlansDetails[_planId].planType,
+                "CUSTOM"
+            ) == true,
+            "Invalid plan."
+        );
 
         _subscribePlansDetails[_planId].isDeleted = true;
-        
     }
-
 
     function userSubscribeInPlan(uint256 planId) public payable {
         SubscribePlan memory plan = _subscribePlansDetails[planId];
         require(plan.planId > 0, "Plan does not exist");
 
-        require((plan.planPriceInUSD * 10 ** 18) <= getConversionRate(msg.value), "You need to spend more ETH!");
+        require(
+            (plan.planPriceInUSD * 10**18) <= getConversionRate(msg.value),
+            "You need to spend more ETH!"
+        );
 
         // send money to the owner of contract :P
         payable(owner()).transfer(msg.value);
 
         // add plan expire date
 
-
         // calc the profits
         _contractProfits += msg.value;
 
         // subscribe plan to user
-        _userToSubscribePlan[msg.sender] = UserPlanDetails(planId, block.timestamp + 30 days);
+        _userToSubscribePlan[msg.sender] = UserPlanDetails(
+            planId,
+            block.timestamp + 30 days
+        );
     }
 
-    function userGetHisSubscribePlan() public view returns(uint256 planId, uint256 numberOfCollections, uint256 numberOfItemsForEveryCollection, string memory planType, uint256 planPriceInUSD, uint256 expireAt){
-        SubscribePlan memory planDetils = _subscribePlansDetails[_userToSubscribePlan[msg.sender].planId];
-        return (planDetils.planId, planDetils.numberOfCollections, planDetils.numberOfItemsForEveryCollection, planDetils.planType, planDetils.planPriceInUSD, _userToSubscribePlan[msg.sender].expireAt);
+    function userGetHisSubscribePlan()
+        public
+        view
+        returns (
+            uint256 planId,
+            uint256 numberOfCollections,
+            uint256 numberOfItemsForEveryCollection,
+            string memory planType,
+            uint256 planPriceInUSD,
+            uint256 expireAt
+        )
+    {
+        SubscribePlan memory planDetils = _subscribePlansDetails[
+            _userToSubscribePlan[msg.sender].planId
+        ];
+        return (
+            planDetils.planId,
+            planDetils.numberOfCollections,
+            planDetils.numberOfItemsForEveryCollection,
+            planDetils.planType,
+            planDetils.planPriceInUSD,
+            _userToSubscribePlan[msg.sender].expireAt
+        );
     }
-
 
     // function ownerGetUserSubscribePlan(address user) public view onlyOwner returns(uint256 planId, uint256 numberOfCollections, uint256 numberOfItemsForEveryCollection, string memory planType, uint256 planPriceInUSD, uint256 expireAt){
     //     SubscribePlan memory planDetils = _subscribePlansDetails[_userToSubscribePlan[user].planId];
@@ -277,9 +359,16 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     // }
 
     function createItem(string calldata tokenURI) public checkHisPlan {
-        SubscribePlan memory userPlan = _subscribePlansDetails[_userToSubscribePlan[msg.sender].planId];
+        SubscribePlan memory userPlan = _subscribePlansDetails[
+            _userToSubscribePlan[msg.sender].planId
+        ];
         require(userPlan.planId > 0, "Need to subscribe in plan to add item.");
-        require(_userToNumberOfItems[msg.sender].current() <= (userPlan.numberOfCollections * userPlan.numberOfItemsForEveryCollection), "You need to upgrade your plan!");
+        require(
+            _userToNumberOfItems[msg.sender].current() <=
+                (userPlan.numberOfCollections *
+                    userPlan.numberOfItemsForEveryCollection),
+            "You need to upgrade your plan!"
+        );
 
         uint256 tokenId = mintToken(tokenURI);
 
@@ -302,15 +391,15 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         // increase number of items user has
         _userToNumberOfItems[msg.sender].increment();
 
-        emit NewItemAdded(
-            tokenURI,
-            itemId,
-            tokenId,
-            payable(msg.sender)
-        );
+        emit NewItemAdded(tokenURI, itemId, tokenId, payable(msg.sender));
     }
 
-    function userGetHisItems() public view checkHisPlan returns(AuthItem[] memory){
+    function userGetHisItems()
+        public
+        view
+        checkHisPlan
+        returns (AuthItem[] memory)
+    {
         AuthItem[] memory items = new AuthItem[](
             _userToNumberOfItems[msg.sender].current()
         );
@@ -339,10 +428,16 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     //     _marketItems[itemId].isDeleted = true;
     // }
 
-    function userCreateCollection() checkHisPlan public{
-        SubscribePlan memory userPlan = _subscribePlansDetails[_userToSubscribePlan[msg.sender].planId];
+    function userCreateCollection() public checkHisPlan {
+        SubscribePlan memory userPlan = _subscribePlansDetails[
+            _userToSubscribePlan[msg.sender].planId
+        ];
         require(userPlan.planId > 0, "Need to subscribe in plan to add item.");
-        require(_userToNumberOfCollections[msg.sender].current() <= userPlan.numberOfCollections , "You need to upgrade your plan!");
+        require(
+            _userToNumberOfCollections[msg.sender].current() <=
+                userPlan.numberOfCollections,
+            "You need to upgrade your plan!"
+        );
 
         _userToNumberOfCollections[msg.sender].increment();
     }

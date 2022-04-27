@@ -7,25 +7,45 @@ import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "hardhat-deploy";
+import "hardhat-contract-sizer";
 
 dotenv.config();
 
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
-task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
-  const accounts = await hre.ethers.getSigners();
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
-  for (const account of accounts) {
-    console.log(account.address);
-  }
-});
+const MAINNET_RPC_URL =
+  process.env.MAINNET_RPC_URL ||
+  process.env.ALCHEMY_MAINNET_RPC_URL ||
+  "https://eth-mainnet.alchemyapi.io/v2/your-api-key";
+const RINKEBY_RPC_URL =
+  process.env.RINKEBY_RPC_URL ||
+  "https://eth-rinkeby.alchemyapi.io/v2/your-api-key";
+const POLYGON_MAINNET_RPC_URL =
+  process.env.POLYGON_MAINNET_RPC_URL ||
+  "https://polygon-mainnet.alchemyapi.io/v2/your-api-key";
 
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
+const MUMBAI_MAINNET_RPC_URL =
+  process.env.MUMBAI_MAINNET_RPC_URL ||
+  "https://polygon-mainnet.alchemyapi.io/v2/your-api-key";
+
+// Your API key for Etherscan, obtain one at https://etherscan.io/
+const ETHERSCAN_API_KEY =
+  process.env.ETHERSCAN_API_KEY || "Your etherscan API key";
+const POLYGONSCAN_API_KEY =
+  process.env.POLYGONSCAN_API_KEY || "Your polygonscan API key";
+const REPORT_GAS: boolean = process.env.REPORT_GAS || false;
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
-  solidity: "0.8.4",
+  solidity: {
+    compilers: [{ version: "0.8.4" }, { version: "0.8.13" }],
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
   networks: {
     hardhat: {
       // If you want to do some forking set `enabled` to true
@@ -39,18 +59,49 @@ const config: HardhatUserConfig = {
     localhost: {
       chainId: 31337,
     },
-    ropsten: {
-      url: process.env.ROPSTEN_URL || "",
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    rinkeby: {
+      url: RINKEBY_RPC_URL,
+      accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
+      saveDeployments: true,
+      chainId: 4,
+    },
+    polygon: {
+      url: POLYGON_MAINNET_RPC_URL,
+      accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
+      saveDeployments: true,
+      chainId: 137,
+    },
+    mainnet: {
+      url: MAINNET_RPC_URL,
+      accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
+      saveDeployments: true,
+      chainId: 1,
+    },
+    mumbai: {
+      url: MUMBAI_MAINNET_RPC_URL,
+      accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
+      saveDeployments: true,
+      chainId: 80001,
     },
   },
+  contractSizer: {
+    runOnCompile: true,
+  },
   gasReporter: {
-    enabled: process.env.REPORT_GAS !== undefined,
+    enabled: REPORT_GAS,
     currency: "USD",
+    outputFile: "gas-report.txt",
+    noColors: true,
+    // coinmarketcap: process.env.COINMARKETCAP_API_KEY,
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    // yarn hardhat verify --network <NETWORK> <CONTRACT_ADDRESS> <CONSTRUCTOR_PARAMETERS>
+    apiKey: {
+      rinkeby: ETHERSCAN_API_KEY,
+      mainnet: ETHERSCAN_API_KEY,
+      polygon: POLYGONSCAN_API_KEY,
+      polygonMumbai: POLYGONSCAN_API_KEY,
+    },
   },
 };
 
