@@ -77,7 +77,7 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
       chainId: 1,
     },
-    mumbai: {
+    polygonMumbai: {
       url: MUMBAI_MAINNET_RPC_URL,
       accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
       saveDeployments: true,
