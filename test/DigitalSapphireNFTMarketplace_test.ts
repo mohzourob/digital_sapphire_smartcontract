@@ -192,9 +192,8 @@ if (developmentChains.includes(network.name)) {
         "Address 1 balance check"
       );
 
-      assert.equal(
-        (+addr2BalanceBefore - +itemPrice).toFixed(10),
-        (+addr2BalanceAfter).toFixed(10),
+      expect(+(+addr2BalanceBefore - +itemPrice).toFixed(10)).to.be.at.least(
+        +(+addr2BalanceAfter).toFixed(10),
         "Address 2 balance check"
       );
     });

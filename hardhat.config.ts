@@ -1,4 +1,5 @@
-import * as dotenv from "dotenv";
+import { config as dotenvConfig } from "dotenv";
+import { resolve } from "path";
 
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
@@ -9,7 +10,7 @@ import "solidity-coverage";
 import "hardhat-deploy";
 import "hardhat-contract-sizer";
 
-dotenv.config();
+dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
@@ -34,7 +35,9 @@ const ETHERSCAN_API_KEY =
 const POLYGONSCAN_API_KEY =
   process.env.POLYGONSCAN_API_KEY || "Your polygonscan API key";
 const REPORT_GAS: boolean = Boolean(process.env.REPORT_GAS) || false;
-const FORKING_BLOCK_NUMBER: number = +process.env.FORKING_BLOCK_NUMBER || 0;
+const FORKING_BLOCK_NUMBER: number = +(process.env.FORKING_BLOCK_NUMBER || 0);
+
+console.log(MAINNET_RPC_URL);
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
