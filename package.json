@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test test/*.ts --network localhost",
+    "test": "hardhat test test/*.ts --network hardhat",
+    "test-staging": "hardhat test test/staging/*.js --network rinkeby",
     "format": "prettier --write ."
   },
   "devDependencies": {

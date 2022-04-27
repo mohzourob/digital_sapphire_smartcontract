@@ -34,6 +34,7 @@ const ETHERSCAN_API_KEY =
 const POLYGONSCAN_API_KEY =
   process.env.POLYGONSCAN_API_KEY || "Your polygonscan API key";
 const REPORT_GAS: boolean = Boolean(process.env.REPORT_GAS) || false;
+const FORKING_BLOCK_NUMBER: number = +process.env.FORKING_BLOCK_NUMBER || 0;
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -50,9 +51,9 @@ const config: HardhatUserConfig = {
     hardhat: {
       // If you want to do some forking set `enabled` to true
       forking: {
-        url: "MAINNET_RPC_URL",
-        blockNumber: 0,
-        enabled: false,
+        url: MAINNET_RPC_URL,
+        blockNumber: FORKING_BLOCK_NUMBER,
+        enabled: true,
       },
       chainId: 31337,
     },
