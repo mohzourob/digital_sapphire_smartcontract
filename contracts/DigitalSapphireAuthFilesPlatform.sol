@@ -3,12 +3,10 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 // security against transactions for multiple requests
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import "hardhat/console.sol";
 
 
 contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
@@ -272,14 +270,13 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
     }
 
 
-    function ownerGetUserSubscribePlan(address user) public view onlyOwner returns(uint256 planId, uint256 numberOfCollections, uint256 numberOfItemsForEveryCollection, string memory planType, uint256 planPriceInUSD, uint256 expireAt){
-        SubscribePlan memory planDetils = _subscribePlansDetails[_userToSubscribePlan[user].planId];
-        return (planDetils.planId, planDetils.numberOfCollections, planDetils.numberOfItemsForEveryCollection, planDetils.planType, planDetils.planPriceInUSD, _userToSubscribePlan[user].expireAt);
-    }
+    // function ownerGetUserSubscribePlan(address user) public view onlyOwner returns(uint256 planId, uint256 numberOfCollections, uint256 numberOfItemsForEveryCollection, string memory planType, uint256 planPriceInUSD, uint256 expireAt){
+    //     SubscribePlan memory planDetils = _subscribePlansDetails[_userToSubscribePlan[user].planId];
+    //     return (planDetils.planId, planDetils.numberOfCollections, planDetils.numberOfItemsForEveryCollection, planDetils.planType, planDetils.planPriceInUSD, _userToSubscribePlan[user].expireAt);
+    // }
 
     function createItem(string calldata tokenURI) public checkHisPlan {
         SubscribePlan memory userPlan = _subscribePlansDetails[_userToSubscribePlan[msg.sender].planId];
-        require(block.timestamp <= _userToSubscribePlan[msg.sender].expireAt, "Re-submit ur plan");
         require(userPlan.planId > 0, "Need to subscribe in plan to add item.");
         require(_userToNumberOfItems[msg.sender].current() <= (userPlan.numberOfCollections * userPlan.numberOfItemsForEveryCollection), "You need to upgrade your plan!");
 
@@ -324,20 +321,28 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         return items;
     }
 
-    function ownerGetAllItems() public view onlyOwner returns(AuthItem[] memory){
-        uint256 numberOfItems = _tokenIds.current();
+    // function ownerGetAllItems() public view onlyOwner returns(AuthItem[] memory){
+    //     uint256 numberOfItems = _tokenIds.current();
 
-        AuthItem[] memory items = new AuthItem[](numberOfItems);
-        for (uint256 i = 0; i < numberOfItems; i++) {
-            items[i] = _marketItems[i + 1];
-        }
+    //     AuthItem[] memory items = new AuthItem[](numberOfItems);
+    //     for (uint256 i = 0; i < numberOfItems; i++) {
+    //         items[i] = _marketItems[i + 1];
+    //     }
 
-        return items;
-    }
+    //     return items;
+    // }
 
-    function userDeleteItem(uint256 itemId) checkHisPlan public {
-        require(msg.sender == _marketItems[itemId].owner, "UnAuthorized");
+    // function userDeleteItem(uint256 itemId) checkHisPlan public {
+    //     require(msg.sender == _marketItems[itemId].owner, "UnAuthorized");
 
-        _marketItems[itemId].isDeleted = true;
+    //     _marketItems[itemId].isDeleted = true;
+    // }
+
+    function userCreateCollection() checkHisPlan public{
+        SubscribePlan memory userPlan = _subscribePlansDetails[_userToSubscribePlan[msg.sender].planId];
+        require(userPlan.planId > 0, "Need to subscribe in plan to add item.");
+        require(_userToNumberOfCollections[msg.sender].current() <= userPlan.numberOfCollections , "You need to upgrade your plan!");
+
+        _userToNumberOfCollections[msg.sender].increment();
     }
 }
