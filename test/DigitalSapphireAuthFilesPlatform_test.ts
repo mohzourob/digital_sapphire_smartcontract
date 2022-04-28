@@ -1,8 +1,7 @@
 import { assert, expect } from "chai";
 import { network, ethers, deployments } from "hardhat";
 // eslint-disable-next-line node/no-missing-import
-import { developmentChains } from "../helper-hardhat-config";
-import { networkConfig } from "../helper-hardhat-config";
+import { developmentChains, networkConfig } from "../helper-hardhat-config";
 
 if (developmentChains.includes(network.name)) {
   describe("Test for Digital Sapphire auth files platform", async function () {
