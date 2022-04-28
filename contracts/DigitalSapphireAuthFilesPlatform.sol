@@ -256,7 +256,7 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
             .numberOfCollections = _numberOfCollections;
     }
 
-    function updatePlanNumerOfItemsForEveryCokkection(
+    function updatePlanNumerOfItemsForEveryCollection(
         uint256 _planId,
         uint256 _numberOfItemsForEveryCollection
     ) public onlyOwner {
