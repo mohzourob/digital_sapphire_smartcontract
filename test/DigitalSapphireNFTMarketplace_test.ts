@@ -4,7 +4,7 @@ import { network, ethers, deployments } from "hardhat";
 import { developmentChains } from "../helper-hardhat-config";
 
 if (developmentChains.includes(network.name)) {
-  describe("Unit Test for Digital Sapphire NFTs marketplace", async function () {
+  describe("Test for Digital Sapphire NFTs marketplace", async function () {
     let dsContract: any;
     const oldPrice = 10;
     const newPrice = 30;

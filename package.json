@@ -5,7 +5,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test test/*.ts --network hardhat",
-    "test-staging": "hardhat test test/staging/*.js --network rinkeby",
+    "test-staging": "hardhat test test/*.ts --network rinkeby",
     "format": "prettier --write ."
   },
   "devDependencies": {
