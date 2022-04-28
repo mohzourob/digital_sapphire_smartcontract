@@ -98,8 +98,8 @@ if (developmentChains.includes(network.name)) {
         .connect(owner)
         .getSubscribePlansDetailsForOwner();
 
-        const plan = subscribePlans[3];
-        assert.equal(plan.numberOfCollections, 5)
+      const plan = subscribePlans[3];
+      assert.equal(plan.numberOfCollections, 5);
     });
 
     it("Should update subscribe plan number of collection failed", async () => {
@@ -117,16 +117,31 @@ if (developmentChains.includes(network.name)) {
     it("Should update subscribe plan number of items every collection successfully", async () => {
       const updateTransaction = await dsContract
         .connect(owner)
-        .updatePlanNumberOfCollections(4, 2);
+        .updatePlanNumerOfItemsForEveryCokkection(4, 100);
       await updateTransaction.wait(1);
-
 
       const subscribePlans = await dsContract
         .connect(owner)
         .getSubscribePlansDetailsForOwner();
 
-        const plan = subscribePlans[3];
-        assert.equal(plan.numberOfItemsForEveryCollection, 2)
+      const plan = subscribePlans[3];
+      assert.equal(plan.numberOfItemsForEveryCollection, 100);
+    });
+
+    it("Should update subscribe plan number of items every collection failed", async () => {
+      await expect(
+        dsContract
+          .connect(owner)
+          .updatePlanNumerOfItemsForEveryCokkection(10, 5),
+        "failed because plan id not exist"
+      ).to.be.revertedWith("Plan does not exist");
+
+      await expect(
+        dsContract
+          .connect(owner)
+          .updatePlanNumerOfItemsForEveryCokkection(2, 0),
+        "failed because enter invalid number of items"
+      ).to.be.revertedWith("Enter valid number of items");
     });
   });
 } else {
