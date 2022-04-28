@@ -168,6 +168,41 @@ if (developmentChains.includes(network.name)) {
         "failed because enter invalid price in USD"
       ).to.be.revertedWith("Enter valid price in USD");
     });
+
+    it("Should delete plan failed because plan does not exist", async () => {
+      await expect(dsContract.connect(owner).deletePlan(10)).to.be.revertedWith(
+        "Plan does not exist"
+      );
+    });
+
+    it("should delete plan failed because its not custom plan", async () => {
+      await expect(dsContract.connect(owner).deletePlan(2)).to.be.revertedWith(
+        "Invalid plan"
+      );
+    });
+
+    it("Should delete plan sucessfully", async () => {
+      const deletePlanTransaction = await dsContract
+        .connect(owner)
+        .deletePlan(4);
+      await deletePlanTransaction.wait(1);
+
+      const subscribePlans = await dsContract
+        .connect(owner)
+        .getSubscribePlansDetailsForOwner();
+
+      const isExist = subscribePlans.indexOf(
+        (plan: any) => +plan.planId.toString() === 4
+      );
+
+      assert.equal(isExist, -1);
+    });
+
+    it("Should delete plan failed because it already deleted", async () => {
+      await expect(dsContract.connect(owner).deletePlan(4)).to.be.revertedWith(
+        "Plan already deleted."
+      );
+    });
   });
 } else {
   // eslint-disable-next-line no-unused-expressions

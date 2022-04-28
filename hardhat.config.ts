@@ -37,7 +37,6 @@ const POLYGONSCAN_API_KEY =
 const REPORT_GAS: boolean = Boolean(process.env.REPORT_GAS) || false;
 const FORKING_BLOCK_NUMBER: number = +(process.env.FORKING_BLOCK_NUMBER || 0);
 
-
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
