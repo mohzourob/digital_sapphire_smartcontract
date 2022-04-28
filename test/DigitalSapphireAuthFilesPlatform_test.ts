@@ -6,14 +6,14 @@ import { developmentChains, networkConfig } from "../helper-hardhat-config";
 if (developmentChains.includes(network.name)) {
   describe("Test for Digital Sapphire auth files platform", async function () {
     let dsContract: any;
-    let owner: any, addr1: any, addr2: any;
+    let owner: any, addr1: any;
 
     before(async () => {
       const DSContract = await ethers.getContractFactory(
         "DigitalSapphireAuthFilesPlatform"
       );
 
-      [owner, addr1, addr2] = await ethers.getSigners();
+      [owner, addr1] = await ethers.getSigners();
       dsContract = await DSContract.connect(owner).deploy(
         networkConfig[1].ethUsdPriceFeed
       );
