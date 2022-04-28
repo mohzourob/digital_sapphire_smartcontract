@@ -60,7 +60,7 @@ if (developmentChains.includes(network.name)) {
 
     it("Should get three subscribe plans and all of them is public", async () => {
       const subscribePlans = await dsContract
-        .connect(addr1.address)
+        .connect(addr1)
         .getSubscribePlansDetailsForPublic();
 
       assert.equal(subscribePlans.length, 3, "have three public plans");
@@ -86,6 +86,13 @@ if (developmentChains.includes(network.name)) {
         "check if there is private plans return"
       );
       assert.equal(subscribePlans.length, 4, "check number of plans");
+    });
+
+    it("Should update subscribe plan number of collection successfully", async () => {
+      const updateTransaction = await dsContract
+        .connect(owner)
+        .updatePlanNumberOfCollections(4, 5);
+      await updateTransaction.wait(1);
     });
   });
 } else {
