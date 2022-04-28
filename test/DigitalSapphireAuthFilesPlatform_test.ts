@@ -94,6 +94,16 @@ if (developmentChains.includes(network.name)) {
         .updatePlanNumberOfCollections(4, 5);
       await updateTransaction.wait(1);
     });
+
+    it("Should update subscribe plan number of collection failed", async ()=>{
+      await expect(
+        dsContract.connect(owner).updatePlanNumberOfCollections(10, 5), "failed because plan id not exist"
+      ).to.be.revertedWith("Plan does not exist");
+
+      await expect(
+        dsContract.connect(owner).updatePlanNumberOfCollections(2, 0), "failed because enter invalid number of collection"
+      ).to.be.revertedWith("Enter valid number of collections");
+    })
   });
 } else {
   // eslint-disable-next-line no-unused-expressions
