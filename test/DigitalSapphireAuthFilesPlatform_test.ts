@@ -298,6 +298,22 @@ if (developmentChains.includes(network.name)) {
       const numberOfCollections = await dsContract.connect(addr1).getNumberOfCollectionOwnerHas();
       assert.equal(numberOfCollections, 1);
     })
+
+    it("Should create new item failed because user does not has enough number of collection in plan", async () => {
+      await expect(
+        dsContract.connect(addr1).userCreateCollection()
+      ).to.be.revertedWith("You need to upgrade your plan!");
+    });
+
+    it("Should get number of items user has successfully", async ()=>{
+      const numberOfItems = await dsContract.connect(addr1).getNumberOfItemsUserHas();
+      assert.equal(numberOfItems, 1);
+    })
+
+    it("Should get number of collection user has successfuly", async ()=>{
+      const numberOfCollections = await dsContract.connect(addr1).getNumberOfCollectionOwnerHas();
+      assert.equal(numberOfCollections, 1);
+    })
   });
 } else {
   // eslint-disable-next-line no-unused-expressions
