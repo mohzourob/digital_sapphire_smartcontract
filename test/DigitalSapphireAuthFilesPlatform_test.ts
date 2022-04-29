@@ -257,6 +257,16 @@ if (developmentChains.includes(network.name)) {
         })
       ).to.be.revertedWith("You need to spend more ETH!");
     });
+
+    it("Should create new item successfully", async ()=>{
+      const createItemTransaction = await dsContract.connect(addr1).createItem("Thisisstring");
+      await createItemTransaction.wait(1);
+
+      const userItems = await dsContract.connect(addr1).userGetHisItems();
+
+      assert(userItems[0].owner.toString(), addr1.address);
+      assert(userItems[0].tokenURI, "Thisisstring");
+    })
   });
 } else {
   // eslint-disable-next-line no-unused-expressions
