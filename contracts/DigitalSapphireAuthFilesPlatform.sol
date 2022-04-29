@@ -440,11 +440,11 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         _userToNumberOfCollections[msg.sender].increment();
     }
 
-    function getNumberOfItemsUserHas() public view returns(uint256){
+    function getNumberOfItemsUserHas() public view returns (uint256) {
         return _userToNumberOfItems[msg.sender].current();
     }
 
-    function getNumberOfCollectionOwnerHas() public view returns (uint256){
+    function getNumberOfCollectionOwnerHas() public view returns (uint256) {
         return _userToNumberOfCollections[msg.sender].current();
     }
 }

@@ -291,13 +291,17 @@ if (developmentChains.includes(network.name)) {
       );
     });
 
-    it("Should create collection successfully", async ()=>{
-      const createCollectionTransaction = await dsContract.connect(addr1).userCreateCollection();
+    it("Should create collection successfully", async () => {
+      const createCollectionTransaction = await dsContract
+        .connect(addr1)
+        .userCreateCollection();
       await createCollectionTransaction.wait(1);
 
-      const numberOfCollections = await dsContract.connect(addr1).getNumberOfCollectionOwnerHas();
+      const numberOfCollections = await dsContract
+        .connect(addr1)
+        .getNumberOfCollectionOwnerHas();
       assert.equal(numberOfCollections, 1);
-    })
+    });
 
     it("Should create new item failed because user does not has enough number of collection in plan", async () => {
       await expect(
@@ -305,15 +309,19 @@ if (developmentChains.includes(network.name)) {
       ).to.be.revertedWith("You need to upgrade your plan!");
     });
 
-    it("Should get number of items user has successfully", async ()=>{
-      const numberOfItems = await dsContract.connect(addr1).getNumberOfItemsUserHas();
+    it("Should get number of items user has successfully", async () => {
+      const numberOfItems = await dsContract
+        .connect(addr1)
+        .getNumberOfItemsUserHas();
       assert.equal(numberOfItems, 1);
-    })
+    });
 
-    it("Should get number of collection user has successfuly", async ()=>{
-      const numberOfCollections = await dsContract.connect(addr1).getNumberOfCollectionOwnerHas();
+    it("Should get number of collection user has successfuly", async () => {
+      const numberOfCollections = await dsContract
+        .connect(addr1)
+        .getNumberOfCollectionOwnerHas();
       assert.equal(numberOfCollections, 1);
-    })
+    });
   });
 } else {
   // eslint-disable-next-line no-unused-expressions
