@@ -280,6 +280,13 @@ if (developmentChains.includes(network.name)) {
         dsContract.connect(addr1).createItem("testest")
       ).to.be.revertedWith("You need to upgrade your plan!");
     });
+    
+    it("Should get his items successfully", async ()=>{
+      const userItems = await dsContract.connect(addr1).userGetHisItems();
+
+      assert.equal(userItems.length, 1);
+      assert.equal(userItems.every((i:any) => i.owner.toString() === addr1.address), true)
+    })
   });
 } else {
   // eslint-disable-next-line no-unused-expressions
