@@ -249,7 +249,6 @@ if (developmentChains.includes(network.name)) {
       ).to.be.revertedWith("Plan does not exist");
     });
 
-
     it("Should failed to subscribe new plan because no enough eth", async () => {
       await expect(
         dsContract.connect(addr1).userSubscribeInPlan(5, {
@@ -258,15 +257,29 @@ if (developmentChains.includes(network.name)) {
       ).to.be.revertedWith("You need to spend more ETH!");
     });
 
-    it("Should create new item successfully", async ()=>{
-      const createItemTransaction = await dsContract.connect(addr1).createItem("Thisisstring");
+    it("Should create new item successfully", async () => {
+      const createItemTransaction = await dsContract
+        .connect(addr1)
+        .createItem("Thisisstring");
       await createItemTransaction.wait(1);
 
       const userItems = await dsContract.connect(addr1).userGetHisItems();
 
       assert(userItems[0].owner.toString(), addr1.address);
       assert(userItems[0].tokenURI, "Thisisstring");
-    })
+    });
+
+    it("Should create new item failed because user does not subscribe in plan", async () => {
+      await expect(
+        dsContract.connect(owner).createItem("testest")
+      ).to.be.revertedWith("Re-submit ur plan");
+    });
+
+    it("Should create new item failed because user does not has enough number of items in plan", async () => {
+      await expect(
+        dsContract.connect(addr1).createItem("testest")
+      ).to.be.revertedWith("You need to upgrade your plan!");
+    });
   });
 } else {
   // eslint-disable-next-line no-unused-expressions

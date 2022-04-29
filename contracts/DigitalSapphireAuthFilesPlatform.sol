@@ -362,9 +362,8 @@ contract DigitalSapphireAuthFilesPlatform is ERC721URIStorage, Ownable {
         SubscribePlan memory userPlan = _subscribePlansDetails[
             _userToSubscribePlan[msg.sender].planId
         ];
-        require(userPlan.planId > 0, "Need to subscribe in plan to add item.");
         require(
-            _userToNumberOfItems[msg.sender].current() <=
+            _userToNumberOfItems[msg.sender].current() + 1 <=
                 (userPlan.numberOfCollections *
                     userPlan.numberOfItemsForEveryCollection),
             "You need to upgrade your plan!"

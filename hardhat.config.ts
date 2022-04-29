@@ -53,7 +53,7 @@ const config: HardhatUserConfig = {
       // If you want to do some forking set `enabled` to true
       forking: {
         url: MAINNET_RPC_URL,
-        // blockNumber: FORKING_BLOCK_NUMBER,
+        blockNumber: FORKING_BLOCK_NUMBER,
         enabled: true,
       },
       chainId: 31337,
