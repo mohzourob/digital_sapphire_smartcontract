@@ -240,6 +240,23 @@ if (developmentChains.includes(network.name)) {
 
       assert.equal(isSameDate, true);
     });
+
+    it("Should failed to subscribe new plan because plan does not exist", async () => {
+      await expect(
+        dsContract.connect(addr1).userSubscribeInPlan(10, {
+          value: ethers.utils.parseEther("0.017"),
+        })
+      ).to.be.revertedWith("Plan does not exist");
+    });
+
+
+    it("Should failed to subscribe new plan because no enough eth", async () => {
+      await expect(
+        dsContract.connect(addr1).userSubscribeInPlan(5, {
+          value: ethers.utils.parseEther("0.001"),
+        })
+      ).to.be.revertedWith("You need to spend more ETH!");
+    });
   });
 } else {
   // eslint-disable-next-line no-unused-expressions
