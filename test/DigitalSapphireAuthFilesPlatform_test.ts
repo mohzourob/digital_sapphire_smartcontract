@@ -280,12 +280,23 @@ if (developmentChains.includes(network.name)) {
         dsContract.connect(addr1).createItem("testest")
       ).to.be.revertedWith("You need to upgrade your plan!");
     });
-    
-    it("Should get his items successfully", async ()=>{
+
+    it("Should get his items successfully", async () => {
       const userItems = await dsContract.connect(addr1).userGetHisItems();
 
       assert.equal(userItems.length, 1);
-      assert.equal(userItems.every((i:any) => i.owner.toString() === addr1.address), true)
+      assert.equal(
+        userItems.every((i: any) => i.owner.toString() === addr1.address),
+        true
+      );
+    });
+
+    it("Should create collection successfully", async ()=>{
+      const createCollectionTransaction = await dsContract.connect(addr1).userCreateCollection();
+      await createCollectionTransaction.wait(1);
+
+      const numberOfCollections = await dsContract.connect(addr1).getNumberOfCollectionOwnerHas();
+      assert.equal(numberOfCollections, 1);
     })
   });
 } else {
