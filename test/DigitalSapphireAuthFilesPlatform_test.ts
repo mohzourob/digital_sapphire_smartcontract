@@ -1,5 +1,6 @@
 import { assert, expect } from "chai";
 import { network, ethers, deployments } from "hardhat";
+import moment from "moment";
 // eslint-disable-next-line node/no-missing-import
 import { developmentChains, networkConfig } from "../helper-hardhat-config";
 
@@ -202,6 +203,42 @@ if (developmentChains.includes(network.name)) {
       await expect(dsContract.connect(owner).deletePlan(4)).to.be.revertedWith(
         "Plan already deleted."
       );
+    });
+
+    it("Should user subscribe in plan successfully", async () => {
+      // 1. create the plan
+      const createCustomPlanTransaction = await dsContract
+        .connect(owner)
+        .addCustomPlan(1, 1, 50);
+      await createCustomPlanTransaction.wait(1);
+
+      const ETHPriceInUSD = +(await dsContract.getEthPriceInUSD()).toString();
+      const UDSPriceInETH = (
+        50 /
+        (ETHPriceInUSD / 1000000000000000000)
+      ).toString();
+
+      await dsContract.connect(addr1).userSubscribeInPlan(5, {
+        value: ethers.utils.parseEther(UDSPriceInETH),
+      });
+
+      const userPlan = await dsContract
+        .connect(addr1)
+        .userGetHisSubscribePlan();
+
+      assert.equal(userPlan.numberOfCollections, 1);
+      assert.equal(userPlan.numberOfItemsForEveryCollection, 1);
+      assert.equal(userPlan.planPriceInUSD, 50);
+
+      const blockDate = moment
+        .unix(+userPlan.expireAt.toString())
+        .format("YYYY-MM-DD");
+
+      const dateAfter30Days = moment().add(30, "days");
+
+      const isSameDate = moment(dateAfter30Days).isSame(blockDate, "date");
+
+      assert.equal(isSameDate, true);
     });
   });
 } else {
