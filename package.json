@@ -6,7 +6,11 @@
     "compile": "hardhat compile",
     "test": "hardhat test test/*.ts --network hardhat",
     "test-staging": "hardhat test test/*.ts --network rinkeby",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "deploy:authFile:rinkeby": "npx hardhat run scripts/01_Deploy_DigitalSapphireAuthFilesPlatform.ts --network rinkeby",
+    "deploy:nft:rinkeby": "npx hardhat run scripts/02_Deploy_DigitalSapphireNFTMarketplace.ts --network rinkeby",
+    "deploy:nft:polygonMumbai": "npx hardhat run scripts/02_Deploy_DigitalSapphireNFTMarketplace.ts --network polygonMumbai",
+    "deploy:authFile:polygonMumbai": "npx hardhat run scripts/01_Deploy_DigitalSapphireAuthFilesPlatform.ts --network polygonMumbai"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
